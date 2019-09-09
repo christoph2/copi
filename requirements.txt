@@ -1,2 +1,3 @@
 cython
 typing
+pytest < 5.0
