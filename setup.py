@@ -4,6 +4,24 @@
 """The setup script."""
 
 from setuptools import setup, find_packages
+from distutils.core import Extension
+from Cython.Build import cythonize
+
+"""
+# First create an Extension object with the appropriate name and sources.
+
+ext = Extension(name="wrap_fib", sources=["cfib.c", "wrap_fib.pyx"])
+
+# Use cythonize on the extension object.
+setup(ext_modules=cythonize(ext))
+
+"""
+extensions = [
+    Extension("hello", ["copi/hello.pyx"], libraries=["user32"]),
+    Extension("fib", ["copi/fib.pyx"])
+]
+
+ext_modules=cythonize(extensions, language_level = 3)
 
 with open('README.rst') as readme_file:
     readme = readme_file.read()
@@ -31,7 +49,7 @@ setup(
         'Programming Language :: Python :: 3.6',
         'Programming Language :: Python :: 3.7',
     ],
-    description="copi is a micro-framework for IOCP (I/O completion ports) on Windows.",
+    description="copi is your friendly IOCP (I/O completion ports) micro framework, exclusively for Windows.",
     install_requires=requirements,
     license="BSD license",
     long_description=readme + '\n\n' + history,
@@ -42,6 +60,7 @@ setup(
     setup_requires=setup_requirements,
     test_suite='tests',
     tests_require=test_requirements,
+    ext_modules = ext_modules,
     url='https://github.com/christoph2/copi',
     version='0.1.0',
     zip_safe=False,

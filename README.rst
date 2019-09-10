@@ -15,8 +15,7 @@ copi
 
 
 
-
-copi is a micro-framework for IOCP (I/O completion ports) on Windows.
+copi is your friendly IOCP (I/O completion ports) micro framework, exclusively for Windows.
 
 
 * Free software: BSD license
