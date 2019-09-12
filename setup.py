@@ -8,8 +8,6 @@ from setuptools import setup, find_packages, Extension
 from Cython.Build import cythonize
 
 extensions = [
-    Extension(name = "copi.hello", sources = ["copi/hello.pyx"], libraries=["user32"]),
-    Extension(name = "copi.fib", sources = ["copi/fib.pyx"]),
     Extension(name = "copi._iocp", sources = ["copi/_iocp.cpp"],
         libraries = ["ws2_32"]),
     Extension(name = "copi._helper", sources = ["copi/_helper.cpp"],
