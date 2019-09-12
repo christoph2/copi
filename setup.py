@@ -11,7 +11,9 @@ extensions = [
     Extension(name = "copi.hello", sources = ["copi/hello.pyx"], libraries=["user32"]),
     Extension(name = "copi.fib", sources = ["copi/fib.pyx"]),
     Extension(name = "copi._iocp", sources = ["copi/_iocp.cpp"],
-        libraries = ["ws2_32"])
+        libraries = ["ws2_32"]),
+    Extension(name = "copi._helper", sources = ["copi/_helper.cpp"],
+        libraries = ["kernel32"]),
 ]
 
 ext_modules=cythonize(extensions, language_level = 3)
