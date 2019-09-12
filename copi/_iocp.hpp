@@ -9,13 +9,45 @@
 #include <Mstcpip.h>
 
 
+#include <vector>
 
 #if !defined(__GNUC__)
 #pragma comment(lib,"ws2_32.lib") // MSVC only.
 #endif
 
 namespace IOCP {
-::HANDLE Create(void);
+
+typedef std::vector<char> BufferType;
+
+enum HandleType {
+    HANDLE_SOCKET,
+    HANDLE_FILE
+};
+
+enum IOType {
+    IO_ACCEPT,
+    IO_CONNECT,
+    IO_READ,
+    IO_WRITE
+};
+
+struct PerPortData {
+    HANDLE handle;
+};
+
+struct PerHandleData {
+    HandleType handleType;
+};
+
+
+struct IOCP_PerIOData {
+    IOType ioType;
+    BufferType xferBuffer;
+    size_t bytesToXfer;
+    size_t bytesRemaining;
+};
+
+bool Create(PerPortData & port);
 bool RegisterHandle(::HANDLE port, ::HANDLE object, ::ULONG_PTR key);
 void PostQuitMessage(void);
 }

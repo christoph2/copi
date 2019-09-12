@@ -2,9 +2,9 @@
 #include "_iocp.hpp"
 
 #include <string>
-#include <vector>
 
 #include <cstdio>
+#include <cstddef>
 #include <cstdint>
 
 /*
@@ -22,33 +22,6 @@ void PyInit__iocp(void)
 
 namespace IOCP {
 
-typedef std::vector<char> BufferType;
-
-enum HandleType {
-    HANDLE_SOCKET,
-    HANDLE_FILE
-};
-
-enum IOType {
-    IO_ACCEPT,
-    IO_CONNECT,
-    IO_READ,
-    IO_WRITE
-};
-
-struct PerPortData {
-    HANDLE port;
-};
-
-struct PerHandleData {
-    HandleType handleType;
-};
-
-
-struct IOCP_PerIOData {
-    IOType ioType;
-    BufferType buffer;
-};
 
 void Win_ErrorMsg(const std::string & function, DWORD error)
 {
@@ -67,16 +40,16 @@ void Win_ErrorMsg(const std::string & function, DWORD error)
 
 }
 
-HANDLE Create(void)
+bool Create(PerPortData & port)
 {
-    ::HANDLE handle;
+    bool result = true;
 
-    handle  = ::CreateIoCompletionPort(INVALID_HANDLE_VALUE, NULL, (ULONG_PTR)0, 1);
-    if (handle == NULL) {
-        Win_ErrorMsg("XcpTl_CreateIOCP::CreateIoCompletionPort()", WSAGetLastError());
-        exit(EXIT_FAILURE);
+    port.handle  = ::CreateIoCompletionPort(INVALID_HANDLE_VALUE, NULL, (ULONG_PTR)0, 1);
+    if (port.handle == NULL) {
+        result = false;
     }
-    return handle;
+
+    return result;
 }
 
 
