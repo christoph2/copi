@@ -1,8 +1,5 @@
 
-#define _WIN32_WINNT    0x601
-#include <Windows.h>
-
-BOOL isWow64();
+#include "_helper.hpp"
 
 extern "C" {
 void PyInit__helper(void)
@@ -11,15 +8,7 @@ void PyInit__helper(void)
 }
 };
 
-
-class SystemInformation {
-public:
-    SystemInformation();
-    DWORD getPageSize();
-    DWORD getAllocationGranularity();
-private:
-    SYSTEM_INFO m_info;
-};
+namespace IOCP {
 
 SystemInformation::SystemInformation()
 {
@@ -30,12 +19,12 @@ SystemInformation::SystemInformation()
     }
 }
 
-DWORD SystemInformation::getPageSize()
+DWORD SystemInformation::getPageSize() const
 {
     return m_info.dwPageSize;
 }
 
-DWORD SystemInformation::getAllocationGranularity()
+DWORD SystemInformation::getAllocationGranularity() const
 {
     return m_info.dwAllocationGranularity;
 }
@@ -58,4 +47,4 @@ BOOL isWow64()
     }
     return bIsWow64;
 }
-
+}
