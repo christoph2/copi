@@ -24,16 +24,16 @@ namespace IOCP {
 
 typedef std::vector<char> BufferType;
 
-enum class HandleType {
-    SOCKET,
-    FILE
+enum HandleType {
+    HANDLE_SOCKET,
+    HANDLE_FILE
 };
 
-enum class IOType {
-    ACCEPT,
-    CONNECT,
-    READ,
-    WRITE
+enum IOType {
+    IO_ACCEPT,
+    IO_CONNECT,
+    IO_READ,
+    IO_WRITE
 };
 
 struct PerPortData {
