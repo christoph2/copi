@@ -3,22 +3,15 @@
 
 """The setup script."""
 
-from setuptools import setup, find_packages
-from distutils.core import Extension
+from setuptools import setup, find_packages, Extension
+#from distutils.core import Extension
 from Cython.Build import cythonize
 
-"""
-# First create an Extension object with the appropriate name and sources.
-
-ext = Extension(name="wrap_fib", sources=["cfib.c", "wrap_fib.pyx"])
-
-# Use cythonize on the extension object.
-setup(ext_modules=cythonize(ext))
-
-"""
 extensions = [
-    Extension("hello", ["copi/hello.pyx"], libraries=["user32"]),
-    Extension("fib", ["copi/fib.pyx"])
+    Extension(name = "copi.hello", sources = ["copi/hello.pyx"], libraries=["user32"]),
+    Extension(name = "copi.fib", sources = ["copi/fib.pyx"]),
+    Extension(name = "copi._iocp", sources = ["copi/_iocp.cpp"],
+        libraries = ["ws2_32"])
 ]
 
 ext_modules=cythonize(extensions, language_level = 3)
@@ -54,7 +47,8 @@ setup(
     license="BSD license",
     long_description=readme + '\n\n' + history,
     include_package_data=True,
-    keywords='copi',
+    keywords=['iocp ', 'Windows'],
+    platforms=['Windows'],
     name='copi',
     packages=find_packages(include=['copi']),
     setup_requires=setup_requirements,
