@@ -14,10 +14,11 @@
 #pragma comment(lib,"ws2_32.lib") // MSVC only.
 #endif
 
-
-HANDLE IOCP_Create(void);
-bool IOCP_RegisterHandle(HANDLE port, HANDLE object, ULONG_PTR key);
-void IOCP_PostQuitMessage(void);
+namespace IOCP {
+::HANDLE Create(void);
+bool RegisterHandle(::HANDLE port, ::HANDLE object, ::ULONG_PTR key);
+void PostQuitMessage(void);
+}
 
 #endif // __IOCP_HPP
 
