@@ -33,9 +33,6 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #if !defined(__EXCEPTIONS_HPP)
 #define __EXCEPTIONS_HPP
 
-#define _WIN32_WINNT    0x601
-#include <Windows.h>
-
 #include <exception>
 
 namespace IOCP {

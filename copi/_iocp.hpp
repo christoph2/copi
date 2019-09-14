@@ -51,7 +51,8 @@ typedef std::vector<char> BufferType;
 
 enum HandleType {
     HANDLE_SOCKET,
-    HANDLE_FILE
+    HANDLE_FILE,
+    HANDLE_USER,
 };
 
 enum IOType {
@@ -67,19 +68,32 @@ struct PerPortData {
 
 struct PerHandleData {
     HandleType handleType;
+    HANDLE handle;
 };
 
 
 struct IOCP_PerIOData {
+    OVERLAPPED overlapped;
     IOType ioType;
     BufferType xferBuffer;
     size_t bytesToXfer;
     size_t bytesRemaining;
 };
 
-bool Create(PerPortData & port);
-bool RegisterHandle(::HANDLE port, ::HANDLE object, ::ULONG_PTR key);
-void PostQuitMessage(void);
+class IOCP {
+public:
+    IOCP(DWORD numProcessors = 0);
+    ~IOCP();
+    bool Register(PerHandleData * object);
+    void PostQuitMessage() const;
+private:
+    PerPortData m_port;
+};
+
+bool Create(PerPortData & port, DWORD numProcessors = 0);
+bool RegisterHandle(PerPortData port, PerHandleData * object);
+void PostQuitMessage(PerPortData port);
+
 }
 
 #endif // __IOCP_HPP

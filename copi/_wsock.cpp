@@ -29,8 +29,7 @@ OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGEN
 OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
 OF THE POSSIBILITY OF SUCH DAMAGE.
 */
-#include "_wsock.hpp"
-#include "_exceptions.hpp"
+#include "copi.hpp"
 
 #include <iostream>
 
@@ -49,7 +48,7 @@ WSock::WSock()
     WSAData data;
 
     if (WSAStartup(MAKEWORD(2, 2), &data) != 0) {
-        throw IOCP::WindowsException();
+        throw WindowsException();
     }
     std::cout << "WSock c-tor" << std::endl;
 }

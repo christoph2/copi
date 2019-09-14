@@ -29,17 +29,19 @@ OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGEN
 OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
 OF THE POSSIBILITY OF SUCH DAMAGE.
 */
-#include "_iocp.hpp"
+#include "copi.hpp"
+
+#include <iostream>
 
 #include <string>
 
 #include <cstdio>
 #include <cstddef>
-#include <cstdint>
+
 
 /*
  *
- *  Note: Object-orientation is handed over to Cython.
+ *
  *
  */
 
@@ -70,11 +72,32 @@ void Win_ErrorMsg(const std::string & function, DWORD error)
 
 }
 
-bool Create(PerPortData & port)
+
+IOCP::IOCP(DWORD numProcessors)
+{
+    std::cout << "IOCP c-tor" << std::endl;
+}
+
+IOCP::~IOCP()
+{
+    std::cout << "IOCP d-tor" << std::endl;
+}
+
+bool IOCP::Register(PerHandleData * object)
+{
+    return true;
+}
+
+void IOCP::PostQuitMessage() const
+{
+
+}
+
+bool Create(PerPortData & port, DWORD numProcessors)
 {
     bool result = true;
 
-    port.handle  = ::CreateIoCompletionPort(INVALID_HANDLE_VALUE, NULL, (ULONG_PTR)0, 1);
+    port.handle  = ::CreateIoCompletionPort(INVALID_HANDLE_VALUE, NULL, (ULONG_PTR)0, numProcessors);
     if (port.handle == NULL) {
         result = false;
     }
@@ -83,23 +106,78 @@ bool Create(PerPortData & port)
 }
 
 
-bool RegisterHandle(HANDLE port, HANDLE object, ULONG_PTR key)
+bool RegisterHandle(PerPortData port, PerHandleData * object)
 {
-    ::HANDLE handle;
+    HANDLE handle;
 
-    handle = ::CreateIoCompletionPort(object, port, key, 0);
+    //PerHandleData data;
+
+    handle = ::CreateIoCompletionPort(object, object->handle, reinterpret_cast<ULONG_PTR>(object), 0);
     if (handle == NULL) {
-        Win_ErrorMsg("XcpTl_RegisterIOCPHandle::CreateIoCompletionPort()", WSAGetLastError());
-        exit(EXIT_FAILURE);
+        // TODO: raise!?
     }
-    return (handle == port);
+    return (handle == port.handle);
+}
+
+void IOCP_PostMessage(PerPortData port)
+{
+    ::PostQueuedCompletionStatus(port.handle, 0, (ULONG_PTR)NULL, NULL);
+}
+
+void IOCP_PostQuitMessage(PerPortData port)
+{
+    ::PostQueuedCompletionStatus(port.handle, 0, (ULONG_PTR)NULL, NULL);
 }
 
 #if 0
-void IOCP_PostQuitMessage(void)
-{
-    ::PostQueuedCompletionStatus(XcpTl_Connection.iocp, 0, (ULONG_PTR)NULL, NULL);
+std::vector<char> myData;
+for (;;) {
+    const int BufferSize = 1024;
+
+    const size_t oldSize = myData.size();
+    myData.resize(myData.size() + BufferSize);
+
+    const unsigned bytesRead = get_network_data(&myData[oldSize], BufferSize);
+    myData.resize(oldSize + bytesRead);
+
+    if (bytesRead == 0) {
+        break;
+    }
 }
+
+
+std::vector<char> myData;
+for (;;) {
+    const int BufferSize = 1024;
+    char rawBuffer[BufferSize];
+
+    const unsigned bytesRead = get_network_data(rawBuffer, sizeof(rawBuffer));
+    if (bytesRead <= 0) {
+        break;
+    }
+
+    myData.insert(myData.end(), rawBuffer, rawBuffer + bytesRead);
+}
+
+
+//Finally, if you need to treat your data as a raw-array:
+some_c_function(myData.data(), myData.size());
+//std::vector is guaranteed to be contiguous.
+//
+
+std::vector<char> buffer;
+static const size_t MaxBytesPerRecv = 1024;
+size_t bytesRead;
+do
+{
+    const size_t oldSize = buffer.size();
+
+    buffer.resize(oldSize + MaxBytesPerRecv);
+    bytesRead = receive(&buffer[oldSize], MaxBytesPerRecv); // pseudo, as is the case with winsock recv() functions, they get a buffer and maximum bytes to write to the buffer
+
+    myData.resize(oldSize + bytesRead); // shrink the vector, this is practically no-op - it only modifies the internal size, no data is moved/freed
+} while (bytesRead > 0);
 #endif
 }
+
 
