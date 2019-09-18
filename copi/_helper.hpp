@@ -33,10 +33,11 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #if !defined(__HELPER_HPP)
 #define __HELPER_HPP
 
+#define _WIN32_WINNT    0x601
 #include <Windows.h>
+#include <string>
 
 namespace IOCP {
-BOOL isWow64();
 
 class SystemInformation {
 public:
@@ -44,9 +45,12 @@ public:
     DWORD getPageSize() const;
     DWORD getAllocationGranularity() const;
     DWORD getNumberOfProcessors() const;
+    bool isWow64() const;
 private:
     SYSTEM_INFO m_info;
 };
+
+void Win_ErrorMsg(const std::string & function, DWORD error);
 
 }
 

@@ -30,6 +30,7 @@ OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISE
 OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 #include "_helper.hpp"
+#include <string>
 
 extern "C" {
 void PyInit__helper(void)
@@ -40,6 +41,8 @@ void PyInit__helper(void)
 
 namespace IOCP {
 
+static bool _isWow64();
+
 SystemInformation::SystemInformation()
 {
     if (isWow64()) {
@@ -47,6 +50,11 @@ SystemInformation::SystemInformation()
     } else {
         ::GetSystemInfo(&m_info);
     }
+}
+
+bool SystemInformation::isWow64() const
+{
+    return _isWow64();
 }
 
 DWORD SystemInformation::getPageSize() const
@@ -64,15 +72,32 @@ DWORD SystemInformation::getNumberOfProcessors() const
     return m_info.dwNumberOfProcessors;
 }
 
+void Win_ErrorMsg(const std::string & function, DWORD error)
+{
+    char buffer[1024];
+
+    ::FormatMessage(
+        FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
+        NULL,
+        error,
+        MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
+        buffer,
+        1024,
+        NULL
+    );
+    ::fprintf(stderr, "[%s] failed with: [%d] %s", function.c_str(), error, buffer);
+
+}
+
 typedef BOOL (WINAPI *LPFN_ISWOW64PROCESS) (HANDLE, PBOOL);
 
 LPFN_ISWOW64PROCESS fnIsWow64Process = (LPFN_ISWOW64PROCESS)GetProcAddress(
 GetModuleHandle("kernel32"),"IsWow64Process");
 
-BOOL isWow64()
+static bool _isWow64()
 {
     BOOL bIsWow64 = FALSE;
- 
+
     if (NULL != fnIsWow64Process)
     {
         if (!fnIsWow64Process(GetCurrentProcess(),&bIsWow64))
@@ -82,4 +107,5 @@ BOOL isWow64()
     }
     return bIsWow64;
 }
+
 }
