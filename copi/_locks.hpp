@@ -29,17 +29,58 @@ OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGEN
 OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
 OF THE POSSIBILITY OF SUCH DAMAGE.
 */
+#if !defined(__LOCKS_HPP)
+#define __LOCKS_HPP
 
-#if !defined(__COPI_HPP)
-#define __COPI_HPP
+#include "copi.hpp"
+#include <MSWSock.h>
 
-#include "_exceptions.hpp"
-#include "_iocp.hpp"
-#include "_helper.hpp"
-#include "_locks.hpp"
-#include "_file.hpp"
-#include "_mmap.hpp"
-#include "_socket.hpp"
-#include "_wsock.hpp"
+namespace IOCP {
 
-#endif // __COPI_HPP
+class Lock {
+public:
+    Lock() {}
+    virtual ~Lock() {}
+    virtual void acquire() {}
+    virtual void release() {}
+
+};
+
+
+class ScopedLock {
+public:
+    ScopedLock(Lock const &lock);
+    ~ScopedLock();
+private:
+    Lock m_lock;
+};
+
+namespace win {
+
+class CriticalSection : public Lock {
+public:
+    CriticalSection();
+    ~CriticalSection();
+    void acquire();
+    void release();
+private:
+    CRITICAL_SECTION m_crit_section;
+};
+
+#if 0
+class Mutex : public Lock {
+    Mutex();
+    ~Mutex();
+};
+
+class Spinlock : public Lock {
+    Spinlock();
+    ~Spinlock();
+};
+#endif // 0
+
+}
+
+}
+
+#endif  // __LOCKS_HPP

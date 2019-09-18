@@ -29,17 +29,51 @@ OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGEN
 OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
 OF THE POSSIBILITY OF SUCH DAMAGE.
 */
+#include "copi.hpp"
 
-#if !defined(__COPI_HPP)
-#define __COPI_HPP
+#include <iostream>
 
-#include "_exceptions.hpp"
-#include "_iocp.hpp"
-#include "_helper.hpp"
-#include "_locks.hpp"
-#include "_file.hpp"
-#include "_mmap.hpp"
-#include "_socket.hpp"
-#include "_wsock.hpp"
+namespace IOCP {
 
-#endif // __COPI_HPP
+
+
+ScopedLock::ScopedLock(Lock const &lock)
+{
+    m_lock = lock;
+    m_lock.acquire();
+    std::cout << "ScopedLock acquired()" << std::endl;
+}
+
+ScopedLock::~ScopedLock()
+{
+    m_lock.release();
+    std::cout << "ScopedLock release()" << std::endl;
+}
+
+namespace win {
+
+CriticalSection::CriticalSection()
+{
+    InitializeCriticalSection(&m_crit_section);
+}
+
+CriticalSection::~CriticalSection()
+{
+    DeleteCriticalSection(&m_crit_section);
+}
+
+void CriticalSection::acquire()
+{
+    std::cout << "CriticalSection::acquire()" << std::endl;
+    EnterCriticalSection(&m_crit_section);
+}
+
+void CriticalSection::release()
+{
+    std::cout << "CriticalSection::release()" << std::endl;
+    LeaveCriticalSection(&m_crit_section);
+}
+
+}
+
+}
