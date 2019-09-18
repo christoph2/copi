@@ -31,8 +31,6 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 #include "copi.hpp"
 
-#include <iostream>
-
 extern "C" {
 void PyInit__wsock(void)
 {
@@ -50,13 +48,11 @@ WSock::WSock()
     if (WSAStartup(MAKEWORD(2, 2), &data) != 0) {
         throw WindowsException();
     }
-    std::cout << "WSock c-tor" << std::endl;
 }
 
 WSock::~WSock()
 {
     WSACleanup();
-    std::cout << "WSock c-tor" << std::endl;
 }
 
 }
