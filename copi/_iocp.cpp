@@ -32,9 +32,6 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "copi.hpp"
 
 #include <iostream>
-
-#include <string>
-
 #include <cstdio>
 #include <cstddef>
 
@@ -54,79 +51,181 @@ void PyInit__iocp(void)
 
 namespace IOCP {
 
-
-void Win_ErrorMsg(const std::string & function, DWORD error)
-{
-    char buffer[1024];
-
-    ::FormatMessage(
-        FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
-        NULL,
-        error,
-        MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
-        buffer,
-        1024,
-        NULL
-    );
-    ::fprintf(stderr, "[%s] failed with: [%d] %s", function.c_str(), error, buffer);
-
-}
-
+static DWORD WINAPI WorkerThread(LPVOID lpParameter);
 
 IOCP::IOCP(DWORD numProcessors)
 {
-    std::cout << "IOCP c-tor" << std::endl;
+    m_port.handle  = ::CreateIoCompletionPort(INVALID_HANDLE_VALUE, NULL, static_cast<ULONG_PTR>(0), numProcessors);
+    if (m_port.handle == NULL) {
+        throw WindowsException();
+    }
+    SystemInformation si = SystemInformation();
+
+    if (numProcessors == 0) {
+        numProcessors = si.getNumberOfProcessors();
+    }
+    m_numWorkerThreads = numProcessors * 2; // Hard-coded for now.
+
+    //m_numWorkerThreads = 553;
+
+    m_threads.reserve(m_numWorkerThreads);
+
+    HANDLE hThread;
+
+    for (DWORD idx = 0; idx < m_numWorkerThreads; ++idx) {
+        hThread = ::CreateThread(NULL, 0, WorkerThread, reinterpret_cast<LPVOID>(this), 0, NULL);
+        SetThreadPriority(hThread, THREAD_PRIORITY_ABOVE_NORMAL);
+        m_threads.push_back(hThread);
+    }
 }
 
 IOCP::~IOCP()
 {
-    std::cout << "IOCP d-tor" << std::endl;
-}
+    DWORD numThreads = m_threads.size();
+    std::ldiv_t divres = std::ldiv(numThreads, MAXIMUM_WAIT_OBJECTS);
+    HANDLE * thrArray = NULL;
 
-bool IOCP::Register(PerHandleData * object)
-{
-    return true;
-}
+    DWORD offset = 0;
 
-void IOCP::PostQuitMessage() const
-{
+    postQuitMessage();
 
-}
-
-bool Create(PerPortData & port, DWORD numProcessors)
-{
-    bool result = true;
-
-    port.handle  = ::CreateIoCompletionPort(INVALID_HANDLE_VALUE, NULL, (ULONG_PTR)0, numProcessors);
-    if (port.handle == NULL) {
-        result = false;
+    for (DWORD r = 0; r < divres.quot; ++r) {
+        thrArray = new HANDLE[MAXIMUM_WAIT_OBJECTS];
+        for (DWORD idx = 0; idx < MAXIMUM_WAIT_OBJECTS; ++idx) {
+            thrArray[idx] = m_threads.at(idx + offset);
+        }
+        WaitForMultipleObjects(MAXIMUM_WAIT_OBJECTS, thrArray, TRUE, INFINITE);
+        delete[] thrArray;
+        offset += MAXIMUM_WAIT_OBJECTS;
     }
 
-    return result;
+    if (divres.rem > 0) {
+        thrArray = new HANDLE[numThreads];
+        for (DWORD idx = 0; idx < divres.rem; ++idx) {
+            thrArray[idx] = m_threads.at(idx + offset);
+        }
+        WaitForMultipleObjects(divres.rem, thrArray, TRUE, INFINITE);
+        delete[] thrArray;
+    }
+    CloseHandle(m_port.handle);
 }
 
-
-bool RegisterHandle(PerPortData port, PerHandleData * object)
+bool IOCP::registerHandle(PerHandleData * object)
 {
     HANDLE handle;
 
-    //PerHandleData data;
-
-    handle = ::CreateIoCompletionPort(object, object->handle, reinterpret_cast<ULONG_PTR>(object), 0);
+    handle = ::CreateIoCompletionPort(object->handle, m_port.handle, reinterpret_cast<ULONG_PTR>(object), 0);
+    printf("Registered Handle: %p\n", handle);
     if (handle == NULL) {
-        // TODO: raise!?
+        throw WindowsException();
     }
-    return (handle == port.handle);
+    return (handle == m_port.handle);
 }
 
-void IOCP_PostMessage(PerPortData port)
+void IOCP::postQuitMessage() const
 {
-    ::PostQueuedCompletionStatus(port.handle, 0, (ULONG_PTR)NULL, NULL);
+    if (!::PostQueuedCompletionStatus(m_port.handle, 0, static_cast<ULONG_PTR>(NULL), NULL)) {
+        throw WindowsException();
+    }
 }
 
-void IOCP_PostQuitMessage(PerPortData port)
+HANDLE IOCP::getHandle() const
 {
-    ::PostQueuedCompletionStatus(port.handle, 0, (ULONG_PTR)NULL, NULL);
+    return m_port.handle;
+}
+
+void IOCP::postUserMessage() const
+{
+    ::PostQueuedCompletionStatus(m_port.handle, 0, static_cast<ULONG_PTR>(NULL), NULL);
+}
+
+
+static DWORD WINAPI WorkerThread(LPVOID lpParameter)
+{
+    IOCP const * const iocp = reinterpret_cast<IOCP const * const>(lpParameter);
+    DWORD NumBytesRecv = 0;
+    ULONG CompletionKey = (ULONG_PTR)0;
+    PerIOData * iod = NULL;
+    OVERLAPPED * ov = NULL;
+    bool exitLoop = FALSE;
+//    char receiveBuffer[XCP_COMM_BUFLEN];
+    static WSABUF wsaBuffer;
+    DWORD flags = (DWORD)0;
+    DWORD numReceived;
+//    uint16_t dlc;
+
+
+//    wsaBuffer.buf = receiveBuffer;
+//    wsaBuffer.len = XCP_COMM_BUFLEN;
+
+    printf("Entering thread with [%p] [%d]...\n", iocp, iocp->getHandle());
+    while (!exitLoop) {
+        if (::GetQueuedCompletionStatus(iocp->getHandle(), &NumBytesRecv, &CompletionKey, (LPOVERLAPPED*)&ov, INFINITE)) {
+            printf("Got Event: %ld %ld", NumBytesRecv, CompletionKey);
+            if ((NumBytesRecv == 0) &&  (CompletionKey == 0)) {
+                iocp->postQuitMessage();    // "Broadcast"
+                exitLoop = TRUE;
+            } else {
+#if 0
+                iod = (PerIoData*)ov;
+                //printf("\tOPCODE: %d\n", iod->opcode);
+                switch (iod->opcode) {
+                    case IoRead:
+                        WSARecv(XcpTl_Connection.connectedSocket,
+                                &wsaBuffer,
+                                1,
+                                &numReceived,
+                                &flags,
+                                (LPWSAOVERLAPPED)NULL,
+                                (LPWSAOVERLAPPED_COMPLETION_ROUTINE)NULL
+                        );
+                        if (numReceived == (DWORD)0) {
+                            DBG_PRINT1("Client closed connection\n");
+                            //if (!CancelIo((HANDLE)XcpTl_Connection.connectedSocket)) {
+                            //    printf("Cancelation failed.\n");
+                            //}
+                            XcpTl_Connection.socketConnected = XCP_FALSE;
+                            closesocket(XcpTl_Connection.connectedSocket);
+                            Xcp_Disconnect();
+                        }
+                        XcpTl_Receive(0);
+                        //XcpUtl_Hexdump(buf, numReceived);
+                        if (numReceived > 0) {
+#if XCP_TRANSPORT_LAYER_LENGTH_SIZE == 1
+                            dlc = (uint16_t)buf[0];
+#elif XCP_TRANSPORT_LAYER_LENGTH_SIZE == 2
+                            dlc = MAKEWORD(buf[0], buf[1]);
+                            //dlc = (uint16_t)*(buf + 0);
+#endif // XCP_TRANSPORT_LAYER_LENGTH_SIZE
+                            if (!XcpTl_Connection.xcpConnected || (XcpTl_VerifyConnection())) {
+                                Xcp_PduIn.len = dlc;
+                                Xcp_PduIn.data = buf + XCP_TRANSPORT_LAYER_BUFFER_OFFSET;
+                                Xcp_DispatchCommand(&Xcp_PduIn);
+                            }
+                            if (numReceived < 5) {
+                                DBG_PRINT2("Error: frame to short: %d\n", numReceived);
+                            } else {
+
+                            }
+                            fflush(stdout);
+                        }
+                        break;
+                    case IoAccept:
+                        break;
+                    case IoWrite:
+                        break;
+                }
+#endif // 0
+            }
+        } else {
+            //Win_ErrorMsg("IOWorkerThread::GetQueuedCompletionStatus()", GetLastError());
+            exitLoop = TRUE;
+
+        }
+    }
+    printf("Exiting thread...\n");
+    ExitThread(0);
+    return 0;
 }
 
 #if 0
@@ -179,5 +278,3 @@ do
 } while (bytesRead > 0);
 #endif
 }
-
-
