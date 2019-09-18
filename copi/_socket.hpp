@@ -29,4 +29,35 @@ OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGEN
 OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
 OF THE POSSIBILITY OF SUCH DAMAGE.
 */
+#if !defined(__SOCKET_HPP)
+#define __SOCKET_HPP
+
 #include "copi.hpp"
+#include <MSWSock.h>
+
+namespace IOCP {
+
+typedef std::vector<ADDRINFO *> AddressListType;
+
+class Socket {
+public:
+    Socket(IOCP * iocp, int family, int socktype, int protocol, int options = 0);
+    ~Socket();
+
+    void getOption(int option, char * optval, int * optlen);
+    void setOption(int option, const char * optval, int optlen);
+    int connect(const char *hostname, int port, int family);
+    HANDLE getHandle() const;
+    bool resolve(const char *hostname, int port, int family, AddressListType & addresses);
+    LPFN_CONNECTEX connectEx;
+protected:
+    void loadFunctions();
+private:
+    IOCP * m_iocp;
+    SOCKET m_socket;
+};
+
+
+}
+
+#endif  // __SOCKET_HPP
