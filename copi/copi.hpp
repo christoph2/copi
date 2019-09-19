@@ -37,6 +37,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "_iocp.hpp"
 #include "_helper.hpp"
 #include "_locks.hpp"
+#include "_condition_variable.hpp"
 #include "_file.hpp"
 #include "_mmap.hpp"
 #include "_socket.hpp"

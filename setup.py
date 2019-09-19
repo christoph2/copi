@@ -8,10 +8,12 @@ from setuptools import setup, find_packages, Extension
 from Cython.Build import cythonize
 
 extensions = [
-    Extension(name = "copi._iocp", sources = ["copi/_iocp.cpp"],
-        libraries = ["ws2_32"]),
-    Extension(name = "copi._helper", sources = ["copi/_helper.cpp"],
-        libraries = ["kernel32"]),
+    Extension(name = "copi._copi", sources = ["copi/_iocp.cpp",
+            "copi/_condition_variable.cpp", "copi/_socket.cpp",
+            "copi/_exceptions.cpp", "copi/_locks.cpp", "copi/_wsock.cpp",
+            "copi/_file.cpp", "copi/_mmap.cpp", "copi/_helper.cpp", "copi/_queue.cpp"
+        ],
+        libraries = ["ws2_32", "kernel32"]),
 ]
 
 ext_modules=cythonize(extensions, language_level = 3)

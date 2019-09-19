@@ -47,6 +47,11 @@ void PyInit__iocp(void)
 {
 
 }
+
+void PyInit__copi(void)
+{
+
+}
 }
 
 namespace IOCP {
