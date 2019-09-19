@@ -43,7 +43,7 @@ public:
     virtual ~Lock() {}
     virtual void acquire() {}
     virtual void release() {}
-
+    virtual bool try_acquire() { return true; }
 };
 
 
@@ -63,6 +63,7 @@ public:
     ~CriticalSection();
     void acquire();
     void release();
+    bool try_acquire();
 private:
     CRITICAL_SECTION m_crit_section;
 };
@@ -84,3 +85,4 @@ class Spinlock : public Lock {
 }
 
 #endif  // __LOCKS_HPP
+

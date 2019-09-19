@@ -74,6 +74,13 @@ void CriticalSection::release()
     LeaveCriticalSection(&m_crit_section);
 }
 
+bool CriticalSection::try_acquire()
+{
+    std::cout << "CriticalSection::try_acquire()" << std::endl;
+    return TryEnterCriticalSection(&m_crit_section);
+}
+
+
 }
 
 }
