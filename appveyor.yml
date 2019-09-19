@@ -19,6 +19,7 @@ environment:
 install:
   # We need wheel installed to build wheels
   - cmd: env
+  - cmd: set APPVEYOR_REPO_TAG = true
   - cmd: set PATH=%PATH%;%PYTHON%\Scripts
   - "%PYTHON%\\python.exe -m pip install --upgrade pip"
   - "%PYTHON%\\python.exe -m pip install --upgrade setuptools"
