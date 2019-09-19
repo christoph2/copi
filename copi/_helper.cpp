@@ -100,12 +100,13 @@ static bool _isWow64()
 
     if (NULL != fnIsWow64Process)
     {
-        if (!fnIsWow64Process(GetCurrentProcess(),&bIsWow64))
+        //if (!fnIsWow64Process(GetCurrentProcess(), reinterpret_cast<PBOOL>(&bIsWow64)))
+        if (!fnIsWow64Process(GetCurrentProcess(), &bIsWow64))
         {
             // handle error
         }
     }
-    return bIsWow64;
+    return static_cast<bool>(bIsWow64);
 }
 
 }

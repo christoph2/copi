@@ -151,12 +151,13 @@ static DWORD WINAPI WorkerThread(LPVOID lpParameter)
 {
     IOCP const * const iocp = reinterpret_cast<IOCP const * const>(lpParameter);
     DWORD NumBytesRecv = 0;
-    PULONG_PTR CompletionKey = NULL;
+    ULONG CompletionKey = NULL;
     PerIOData * iod = NULL;
     OVERLAPPED * ov = NULL;
     bool exitLoop = FALSE;
     static WSABUF wsaBuffer;
     DWORD flags = (DWORD)0;
+    DWORD error;
 
 
 //    wsaBuffer.buf = receiveBuffer;
@@ -164,9 +165,9 @@ static DWORD WINAPI WorkerThread(LPVOID lpParameter)
 
     printf("Entering thread with [%p] [%d]...\n", iocp, iocp->getHandle());
     while (!exitLoop) {
-        if (::GetQueuedCompletionStatus(iocp->getHandle(), &NumBytesRecv, CompletionKey, (LPOVERLAPPED*)&ov, INFINITE)) {
-            printf("Got Event: %ld %ld", NumBytesRecv, *CompletionKey);
-            if ((NumBytesRecv == 0) &&  (CompletionKey == 0)) {
+        if (::GetQueuedCompletionStatus(iocp->getHandle(), &NumBytesRecv, &CompletionKey, (LPOVERLAPPED*)&ov, INFINITE)) {
+            printf("Got Event: %ld %ld", NumBytesRecv, CompletionKey);
+            if ((NumBytesRecv == 0) &&  (CompletionKey == NULL)) {
                 iocp->postQuitMessage();    // "Broadcast"
                 exitLoop = TRUE;
             } else {
@@ -222,9 +223,27 @@ static DWORD WINAPI WorkerThread(LPVOID lpParameter)
 #endif // 0
             }
         } else {
-            //Win_ErrorMsg("IOWorkerThread::GetQueuedCompletionStatus()", GetLastError());
-            exitLoop = TRUE;
+            #if 0
+            If the function dequeues a completion packet for a successful I/O operation from the completion port,
+            the return value is nonzero. The function stores information in the variables pointed to by
+            the lpNumberOfBytesTransferred, lpCompletionKey, and lpOverlapped parameters.
+            ----------------------
+            If *lpOverlapped is NULL and the function does not dequeue a completion packet from the completion
+            port, the return value is zero. The function does not store information in the variables pointed to
+            by the lpNumberOfBytes and lpCompletionKey parameters. To get extended error information,
+            call GetLastError. If the function did not dequeue a completion packet because the wait
+            timed out, GetLastError returns WAIT_TIMEOUT.
 
+            If *lpOverlapped is not NULL and the function dequeues a completion packet for a failed
+            I/O operation from the completion port, the return value is zero. The function stores information
+            in the variables pointed to by lpNumberOfBytes, lpCompletionKey, and lpOverlapped. To get extended
+            error information, call GetLastError.
+
+            If a socket handle associated with a completion port is closed, GetQueuedCompletionStatus returns
+            ERROR_SUCCESS, with *lpOverlapped non-NULL and lpNumberOfBytes equal zero.
+            #endif // 0
+            error = GetLastError();
+            Win_ErrorMsg("IOWorkerThread::GetQueuedCompletionStatus()", error);
         }
     }
     printf("Exiting thread...\n");
