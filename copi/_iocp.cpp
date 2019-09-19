@@ -222,26 +222,13 @@ static DWORD WINAPI WorkerThread(LPVOID lpParameter)
 #endif // 0
             }
         } else {
-            #if 0
-            If the function dequeues a completion packet for a successful I/O operation from the completion port,
-            the return value is nonzero. The function stores information in the variables pointed to by
-            the lpNumberOfBytesTransferred, lpCompletionKey, and lpOverlapped parameters.
-            ----------------------
-            If *lpOverlapped is NULL and the function does not dequeue a completion packet from the completion
-            port, the return value is zero. The function does not store information in the variables pointed to
-            by the lpNumberOfBytes and lpCompletionKey parameters. To get extended error information,
-            call GetLastError. If the function did not dequeue a completion packet because the wait
-            timed out, GetLastError returns WAIT_TIMEOUT.
-
-            If *lpOverlapped is not NULL and the function dequeues a completion packet for a failed
-            I/O operation from the completion port, the return value is zero. The function stores information
-            in the variables pointed to by lpNumberOfBytes, lpCompletionKey, and lpOverlapped. To get extended
-            error information, call GetLastError.
-
-            If a socket handle associated with a completion port is closed, GetQueuedCompletionStatus returns
-            ERROR_SUCCESS, with *lpOverlapped non-NULL and lpNumberOfBytes equal zero.
-            #endif // 0
             error = GetLastError();
+            if (ov == NULL) {
+
+            } else {
+                // Failed I/O operation.
+                // The function stores information in the variables pointed to by lpNumberOfBytes, lpCompletionKey.
+            }
             Win_ErrorMsg("IOWorkerThread::GetQueuedCompletionStatus()", error);
         }
     }
