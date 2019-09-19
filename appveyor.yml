@@ -64,7 +64,7 @@ deploy:
   on:
       appveyor_repo_tag: true
   description: Test release -- do not use
-  tag: $(APPVEYOR_REPO_TAG_NAME)
+  #tag: $(appveyor_repo_tag_name)
   draft: false
   prerelease: true
 
