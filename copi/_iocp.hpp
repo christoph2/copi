@@ -70,6 +70,8 @@ struct PerPortData {
 struct PerHandleData {
     HandleType handleType;
     HANDLE handle;
+    DWORD seqNoSend;
+    DWORD seqNoRecv;
 };
 
 

@@ -86,15 +86,17 @@ IOCP::IOCP(DWORD numProcessors)
 
 IOCP::~IOCP()
 {
-    DWORD numThreads = m_threads.size();
+    DWORD numThreads = static_cast<DWORD>(m_threads.size());
     std::ldiv_t divres = std::ldiv(numThreads, MAXIMUM_WAIT_OBJECTS);
+    DWORD rounds = static_cast<DWORD>(divres.quot);
+    DWORD remaining = static_cast<DWORD>(divres.rem);
     HANDLE * thrArray = NULL;
 
     DWORD offset = 0;
 
     postQuitMessage();
 
-    for (DWORD r = 0; r < divres.quot; ++r) {
+    for (DWORD r = 0; r < rounds; ++r) {
         thrArray = new HANDLE[MAXIMUM_WAIT_OBJECTS];
         for (DWORD idx = 0; idx < MAXIMUM_WAIT_OBJECTS; ++idx) {
             thrArray[idx] = m_threads.at(idx + offset);
@@ -104,12 +106,12 @@ IOCP::~IOCP()
         offset += MAXIMUM_WAIT_OBJECTS;
     }
 
-    if (divres.rem > 0) {
+    if (remaining > 0) {
         thrArray = new HANDLE[numThreads];
-        for (DWORD idx = 0; idx < divres.rem; ++idx) {
+        for (DWORD idx = 0; idx < remaining; ++idx) {
             thrArray[idx] = m_threads.at(idx + offset);
         }
-        WaitForMultipleObjects(divres.rem, thrArray, TRUE, INFINITE);
+        WaitForMultipleObjects(remaining, thrArray, TRUE, INFINITE);
         delete[] thrArray;
     }
     CloseHandle(m_port.handle);
@@ -149,15 +151,12 @@ static DWORD WINAPI WorkerThread(LPVOID lpParameter)
 {
     IOCP const * const iocp = reinterpret_cast<IOCP const * const>(lpParameter);
     DWORD NumBytesRecv = 0;
-    ULONG CompletionKey = (ULONG_PTR)0;
+    PULONG_PTR CompletionKey = NULL;
     PerIOData * iod = NULL;
     OVERLAPPED * ov = NULL;
     bool exitLoop = FALSE;
-//    char receiveBuffer[XCP_COMM_BUFLEN];
     static WSABUF wsaBuffer;
     DWORD flags = (DWORD)0;
-    DWORD numReceived;
-//    uint16_t dlc;
 
 
 //    wsaBuffer.buf = receiveBuffer;
@@ -165,8 +164,8 @@ static DWORD WINAPI WorkerThread(LPVOID lpParameter)
 
     printf("Entering thread with [%p] [%d]...\n", iocp, iocp->getHandle());
     while (!exitLoop) {
-        if (::GetQueuedCompletionStatus(iocp->getHandle(), &NumBytesRecv, &CompletionKey, (LPOVERLAPPED*)&ov, INFINITE)) {
-            printf("Got Event: %ld %ld", NumBytesRecv, CompletionKey);
+        if (::GetQueuedCompletionStatus(iocp->getHandle(), &NumBytesRecv, CompletionKey, (LPOVERLAPPED*)&ov, INFINITE)) {
+            printf("Got Event: %ld %ld", NumBytesRecv, *CompletionKey);
             if ((NumBytesRecv == 0) &&  (CompletionKey == 0)) {
                 iocp->postQuitMessage();    // "Broadcast"
                 exitLoop = TRUE;
