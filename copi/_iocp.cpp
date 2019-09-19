@@ -151,14 +151,13 @@ static DWORD WINAPI WorkerThread(LPVOID lpParameter)
 {
     IOCP const * const iocp = reinterpret_cast<IOCP const * const>(lpParameter);
     DWORD NumBytesRecv = 0;
-    ULONG CompletionKey = NULL;
+    ULONG_PTR CompletionKey;
     PerIOData * iod = NULL;
     OVERLAPPED * ov = NULL;
     bool exitLoop = FALSE;
     static WSABUF wsaBuffer;
     DWORD flags = (DWORD)0;
     DWORD error;
-
 
 //    wsaBuffer.buf = receiveBuffer;
 //    wsaBuffer.len = XCP_COMM_BUFLEN;
