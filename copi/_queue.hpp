@@ -29,19 +29,27 @@ OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGEN
 OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
 OF THE POSSIBILITY OF SUCH DAMAGE.
 */
+#if !defined(__QUEUE_HPP)
+#define __QUEUE_HPP
 
-#if !defined(__COPI_HPP)
-#define __COPI_HPP
+#include "copi.hpp"
+#include <queue>
 
-#include "_exceptions.hpp"
-#include "_iocp.hpp"
-#include "_helper.hpp"
-#include "_locks.hpp"
-#include "_condition_variable.hpp"
-#include "_queue.hpp"
-#include "_file.hpp"
-#include "_mmap.hpp"
-#include "_socket.hpp"
-#include "_wsock.hpp"
+namespace IOCP {
 
-#endif // __COPI_HPP
+template <typename T> class Queue {
+public:
+    Queue();
+    ~Queue();
+    void push(const T& data);
+    T& pop();
+    bool empty() const;
+    T& front() const;
+private:
+    std::queue<T> m_queue;
+    win::CriticalSection lock;
+};
+
+}
+
+#endif // __QUEUE_HPP

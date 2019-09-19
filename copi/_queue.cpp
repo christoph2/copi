@@ -29,19 +29,45 @@ OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGEN
 OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
 OF THE POSSIBILITY OF SUCH DAMAGE.
 */
+#include "copi.hpp"
 
-#if !defined(__COPI_HPP)
-#define __COPI_HPP
 
-#include "_exceptions.hpp"
-#include "_iocp.hpp"
-#include "_helper.hpp"
-#include "_locks.hpp"
-#include "_condition_variable.hpp"
-#include "_queue.hpp"
-#include "_file.hpp"
-#include "_mmap.hpp"
-#include "_socket.hpp"
-#include "_wsock.hpp"
+namespace IOCP {
 
-#endif // __COPI_HPP
+
+template <typename T>Queue<T>::Queue()
+{
+
+
+}
+
+template <typename T>Queue<T>::~Queue()
+{
+
+}
+
+template <typename T>void Queue<T>::push(const T& data)
+{
+    ScopedLock(lock);
+    m_queue.push(data);
+}
+
+template <typename T>bool Queue<T>::empty() const
+{
+    ScopedLock(lock);
+    return m_queue.empty();
+}
+
+template <typename T>T& Queue<T>::front() const
+{
+    ScopedLock(lock);
+    return m_queue.front();
+}
+
+template <typename T>T& Queue<T>::pop()
+{
+    ScopedLock(lock);
+    return m_queue.pop();
+}
+
+}
