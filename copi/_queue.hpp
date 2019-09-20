@@ -39,12 +39,35 @@ namespace IOCP {
 
 template <typename T> class Queue {
 public:
-    Queue();
-    ~Queue();
-    void push(const T& data);
-    void pop(T& data);
-    bool empty() const;
-    T& front() const;
+    Queue() : lock(win::CriticalSection()) {}
+    ~Queue() {}
+    void push(const T& data) {
+        lock.acquire();
+        m_queue.push(data);
+        lock.release();
+    }
+    void pop(T& data) {
+        lock.acquire();
+        data = m_queue.front();
+        m_queue.pop();
+        lock.release();
+    }
+    bool empty() const {
+        bool result:
+
+        lock.acquire();
+        result = m_queue.empty();
+        lock.release();
+        return result;
+    }
+    T& front() const {
+        result T& data;
+
+        lock.acquire();
+        result = m_queue.front();
+        lock.release();
+        return result;
+    }
 private:
     std::queue<T> m_queue;
     win::CriticalSection lock;
