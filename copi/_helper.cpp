@@ -106,7 +106,7 @@ static bool _isWow64()
             // handle error
         }
     }
-    return static_cast<bool>(bIsWow64);
+    return bIsWow64 == TRUE;
 }
 
 }
