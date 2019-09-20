@@ -36,18 +36,15 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 namespace IOCP {
 
 
-
 ScopedLock::ScopedLock(Lock const &lock)
 {
     m_lock = lock;
     m_lock.acquire();
-    std::cout << "ScopedLock acquired()" << std::endl;
 }
 
 ScopedLock::~ScopedLock()
 {
     m_lock.release();
-    std::cout << "ScopedLock release()" << std::endl;
 }
 
 namespace win {
@@ -64,19 +61,16 @@ CriticalSection::~CriticalSection()
 
 void CriticalSection::acquire()
 {
-    std::cout << "CriticalSection::acquire()" << std::endl;
     EnterCriticalSection(&m_crit_section);
 }
 
 void CriticalSection::release()
 {
-    std::cout << "CriticalSection::release()" << std::endl;
     LeaveCriticalSection(&m_crit_section);
 }
 
 bool CriticalSection::try_acquire()
 {
-    std::cout << "CriticalSection::try_acquire()" << std::endl;
     return TryEnterCriticalSection(&m_crit_section) == TRUE;
 }
 
