@@ -42,18 +42,6 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  */
 
-extern "C" {
-void PyInit__iocp(void)
-{
-
-}
-
-void PyInit__copi(void)
-{
-
-}
-}
-
 namespace IOCP {
 
 static DWORD WINAPI WorkerThread(LPVOID lpParameter);

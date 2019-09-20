@@ -52,16 +52,16 @@ public:
         m_queue.pop();
         lock.release();
     }
-    bool empty() const {
-        bool result:
+    bool empty() {
+        bool result;
 
         lock.acquire();
         result = m_queue.empty();
         lock.release();
         return result;
     }
-    T& front() const {
-        result T& data;
+    T& front() {
+        T& result;
 
         lock.acquire();
         result = m_queue.front();
