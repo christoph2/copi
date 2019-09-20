@@ -42,7 +42,7 @@ public:
     Queue();
     ~Queue();
     void push(const T& data);
-    T& pop();
+    void pop(T& data);
     bool empty() const;
     T& front() const;
 private:
