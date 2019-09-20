@@ -8,7 +8,7 @@ from setuptools import setup, find_packages, Extension
 from Cython.Build import cythonize
 
 extensions = [
-    Extension(name = "copi._copi", sources = ["copi/_iocp.cpp",
+    Extension(name = "copi._copi", sources = ["copi/copi.pyx", "copi/_iocp.cpp",
             "copi/_condition_variable.cpp", "copi/_socket.cpp",
             "copi/_exceptions.cpp", "copi/_locks.cpp", "copi/_wsock.cpp",
             "copi/_file.cpp", "copi/_mmap.cpp", "copi/_helper.cpp", "copi/_queue.cpp"
