@@ -4,7 +4,6 @@
 """The setup script."""
 
 from setuptools import setup, find_packages, Extension
-#from distutils.core import Extension
 from Cython.Build import cythonize
 
 extensions = [
@@ -16,7 +15,7 @@ extensions = [
         libraries = ["ws2_32", "kernel32"]),
 ]
 
-ext_modules=cythonize(extensions, language_level = 3)
+ext_modules=cythonize(extensions, language='c++', language_level = 3)
 
 with open('README.rst') as readme_file:
     readme = readme_file.read()
