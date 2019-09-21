@@ -49,29 +49,39 @@ ScopedLock::~ScopedLock()
 
 namespace win {
 
-CriticalSection::CriticalSection()
+CriticalSection::CriticalSection(DWORD spincount)
 {
-    InitializeCriticalSection(&m_crit_section);
+    InitializeCriticalSectionAndSpinCount(&m_crit_section, spincount);
+    m_is_locked = false;
 }
 
 CriticalSection::~CriticalSection()
 {
+    if (m_is_locked) {
+        release();
+    }
     DeleteCriticalSection(&m_crit_section);
 }
 
 void CriticalSection::acquire()
 {
     EnterCriticalSection(&m_crit_section);
+    m_is_locked = true;
 }
 
 void CriticalSection::release()
 {
+    if (!m_is_locked) {
+        return;
+    }
     LeaveCriticalSection(&m_crit_section);
+    m_is_locked = false;
 }
 
 bool CriticalSection::try_acquire()
 {
-    return TryEnterCriticalSection(&m_crit_section) == TRUE;
+    m_is_locked = (TryEnterCriticalSection(&m_crit_section) == TRUE);
+    return m_is_locked;
 }
 
 

@@ -59,13 +59,14 @@ namespace win {
 
 class CriticalSection : public Lock {
 public:
-    CriticalSection();
+    CriticalSection(DWORD spincount = 0);
     ~CriticalSection();
     void acquire();
     void release();
     bool try_acquire();
 private:
     CRITICAL_SECTION m_crit_section;
+    bool m_is_locked;
 };
 
 #if 0
