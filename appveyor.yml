@@ -66,6 +66,8 @@ deploy:
   on:
       #branch: master
       appveyor_repo_tag: true
+  auth_token:
+    secure: Wiweaot1JAHzV9mMZ3Zhn/5XUuLe5XYAyfpRZmWNpLW7fMW1FhAdoRliiAhz3Sv6
   description: Test release -- do not use
   tag: $(appveyor_repo_tag_name)
   draft: false
