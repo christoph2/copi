@@ -39,38 +39,47 @@ namespace IOCP {
 
 template <typename T> class Queue {
 public:
-    Queue() : lock(win::CriticalSection()) {}
+    Queue() {
+        m_lock = win::CriticalSection();
+    }
     ~Queue() {}
     void push(const T& data) {
-        lock.acquire();
+        m_lock.acquire();
         m_queue.push(data);
-        lock.release();
+        m_lock.release();
+        m_cv.notify_one();
     }
     void pop(T& data) {
-        lock.acquire();
+        m_lock.acquire();
+
+        while (m_queue.empty()) {
+            m_cv.wait(m_lock);
+        }
+
         data = m_queue.front();
         m_queue.pop();
-        lock.release();
+        m_lock.release();
     }
     bool empty() {
         bool result;
 
-        lock.acquire();
+        m_lock.acquire();
         result = m_queue.empty();
-        lock.release();
+        m_lock.release();
         return result;
     }
     T& front() {
         T& result;
 
-        lock.acquire();
+        m_lock.acquire();
         result = m_queue.front();
-        lock.release();
+        m_lock.release();
         return result;
     }
 private:
     std::queue<T> m_queue;
-    win::CriticalSection lock;
+    win::CriticalSection m_lock;
+    ConditionVariable m_cv;
 };
 
 }
