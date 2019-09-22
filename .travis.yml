@@ -1,29 +1,42 @@
-# Config file for automatic testing at travis-ci.org
-
+# https://travis-ci.org/christoph2/copi
+#dist: xenial
 language: python
+sudo: required
 python:
-  - 3.6
-  - 3.5
-  - 3.4
-  - 2.7
+    - 3.4
+    - 3.5
+    - 3.6
+    - 3.7
 
-# Command to install dependencies, e.g. pip install -r requirements.txt --use-mirrors
-install: pip install -U tox-travis
+os:
+  - linux
+#  - osx
 
-# Command to run tests, e.g. python setup.py test
-script: tox
+notifications:
+  email: false
 
-# Assuming you have installed the travis-ci CLI tool, after you
-# create the Github repo and add it to Travis, run the
-# following command to finish PyPI deployment setup:
-# $ travis encrypt --add deploy.password
+install:
+  - pip install -r requirements.txt
+  - travis_retry pip install pylint codeclimate-test-reporter
+  - travis_retry pip install pytest-cov coverage coveralls codacy-coverage
+
+script:
+#  python -m unittest discover ./objutils/tests/
+#   python ./objutils/tools/readelf.py
+   coverage run --source=pyxcp setup.py test
+
+after_success:
+  - pylint pyxcp
+  - coveralls
+  - coverage xml && python-codacy-coverage -r coverage.xml
+  - codeclimate-test-reporter
+  - python setup.py bdist_wheel
+
 deploy:
-  provider: pypi
-  distributions: sdist bdist_wheel
-  user: christoph2
-  password:
-    secure: PLEASE_REPLACE_ME
-  on:
-    tags: true
-    repo: christoph2/copi
-    python: 3.6
+    provider: releases
+    skip_cleanup: true
+    api_key: $GH_TOKEN
+    on:
+        tags: true
+    file:
+        - "dist/*"
