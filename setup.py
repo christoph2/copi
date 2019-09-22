@@ -23,9 +23,9 @@ with open('README.rst') as readme_file:
 with open('HISTORY.rst') as history_file:
     history = history_file.read()
 
-requirements = ["cython", "typing"]
+requirements = ["typing"]
 
-setup_requirements = ['pytest-runner']
+setup_requirements = ['cython', 'pytest-runner']
 
 test_requirements =  ['pytest < 5.0', ]
 
