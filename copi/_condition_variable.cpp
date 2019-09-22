@@ -35,11 +35,5 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 
 namespace IOCP {
 
-class ConditionVariable {
-public:
-
-private:
-
-};
 
 }

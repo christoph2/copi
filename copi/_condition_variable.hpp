@@ -36,6 +36,17 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 
 namespace IOCP {
 
+class ConditionVariable {
+public:
+
+    ConditionVariable() {}
+    ~ConditionVariable() {}
+    void notify_one() {}
+    void wait(Lock & lock) {}
+private:
+
+};
+
 }
 
 #endif // __CONDITION_VARIABLE_HPP
