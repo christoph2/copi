@@ -37,6 +37,6 @@ cdef class SI:
     cpdef DWORD getNumberOfProcessors(self):
         return self._thisptr.getNumberOfProcessors()
 
-    cpdef bool isWow64(self):
+    cpdef bint isWow64(self):
         return self._thisptr.isWow64()
 
