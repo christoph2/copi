@@ -64,9 +64,10 @@ deploy:
 - provider: GitHub
   artifact: '*.*'
   on:
-      appveyor_repo_tag: true
+      branch: master
+      #appveyor_repo_tag: true
   description: Test release -- do not use
-  #tag: $(appveyor_repo_tag_name)
+  tag: $(appveyor_repo_tag_name)
   draft: false
   prerelease: true
 
