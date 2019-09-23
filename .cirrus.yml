@@ -1,5 +1,6 @@
-container:
-    image: python.slim
+windows_container:
+    image: cirrusci/windowsservercore:2019
+    os_version: 2019
 
 test_task:
     pip_cache:
