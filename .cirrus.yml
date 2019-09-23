@@ -4,14 +4,14 @@ windows_container:
 
 test_task:
     pip_cache:
-        folder: ~/.cache/pip
-        fingerprint_script: echo $PYTHON_VERSION && cat requirements.txt
+        folder: ${HOME}/.cache/pip
+        fingerprint_script: set $PYTHON_VERSION
         populate_script: pip install -r requirements.txt
     test_script: python setup.py test
 
 build_package_test_task:
     pip_cache:
-        folder: ~/.cache/pip
-        fingerprint_script: echo $PYTHON_VERSION
+        folder: ${HOME}/.cache/pip
+        fingerprint_script: set $PYTHON_VERSION
         populate_script: python -m pip install --upgrade setuptools wheel twine
     build_package_test_script: python setup.py bdist_wheel
