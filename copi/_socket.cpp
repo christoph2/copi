@@ -88,10 +88,6 @@ int Socket::connect(const char *hostname, int port, int family)
     int err;
     ADDRINFO hints = {}, *addr;
     char port_str[16] = {};
-    DWORD dwBytes;
-    char horst[NI_MAXHOST];
-    char servInfo[NI_MAXSERV];
-    int res;
 
     SecureZeroMemory(&hints, sizeof(hints));
     hints.ai_family = family;
@@ -133,8 +129,6 @@ bool Socket::resolve(const char *hostname, int port, int family, AddressListType
     hints.ai_protocol = IPPROTO_TCP;
     //hints.ai_flags = AI_NUMERICHOST | AI_PASSIVE;
     hints.ai_flags = 0; //AI_PASSIVE;
-
-
 
     sprintf(port_str, "%d", port);
 
