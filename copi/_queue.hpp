@@ -42,13 +42,16 @@ public:
     Queue() {
         m_lock = win::CriticalSection();
     }
+
     ~Queue() {}
+
     void push(const T& data) {
         m_lock.acquire();
         m_queue.push(data);
         m_lock.release();
         m_cv.notify_one();
     }
+
     void pop(T& data) {
         m_lock.acquire();
 
@@ -60,6 +63,7 @@ public:
         m_queue.pop();
         m_lock.release();
     }
+
     bool empty() {
         bool result;
 
@@ -68,6 +72,7 @@ public:
         m_lock.release();
         return result;
     }
+
     T& front() {
         T& result;
 
@@ -76,6 +81,7 @@ public:
         m_lock.release();
         return result;
     }
+
 private:
     std::queue<T> m_queue;
     win::CriticalSection m_lock;
