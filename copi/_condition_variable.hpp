@@ -32,19 +32,94 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #if !defined(__CONDITION_VARIABLE_HPP)
 #define __CONDITION_VARIABLE_HPP
 
+/**
+ *
+ *  Based on: "Strategies for Implementing POSIX Condition Variables on Win32 /
+    Douglas C. Schmidt and Irfan Pyarali".
+ */
+
+
 #include "copi.hpp"
 
 namespace IOCP {
 
+namespace detail {
+    const unsigned int CV_EVENT_COUNT   = 2;
+
+    const unsigned int CV_SIGNAL        = 0;
+    const unsigned int CV_BROADCAST     = 1;
+}
+
 class ConditionVariable {
 public:
+    ConditionVariable(DWORD spincount = 0) : m_waiters_count(0) {
+        m_lock = win::CriticalSection(spincount);
+        m_events[detail::CV_SIGNAL]     = ::CreateEvent (NULL, FALSE, FALSE, NULL);   // Auto-reset.
+        m_events[detail::CV_BROADCAST]  = ::CreateEvent (NULL, TRUE, FALSE, NULL);    // Manual-reset
+    }
 
-    ConditionVariable() {}
-    ~ConditionVariable() {}
-    void notify_one() {}
-    void wait(Lock & lock) {}
+    ~ConditionVariable() {
+        for (int idx = 0; idx < detail::CV_EVENT_COUNT; ++idx) {
+            ::CloseHandle(m_events[idx]);
+        }
+    }
+
+    void notify_one() {
+        notify_(detail::CV_SIGNAL);
+    }
+
+    void notify_all() {
+        notify_(detail::CV_BROADCAST);
+    }
+
+    bool wait(Lock & externalLock, DWORD millis = INFINITE) {
+        DWORD res;
+        bool last_waiter;
+
+        incrWaitersCount();
+        externalLock.release();
+
+        res = ::WaitForMultipleObjects(detail::CV_EVENT_COUNT, m_events, FALSE, millis);
+        if (res == WAIT_TIMEOUT) {
+            externalLock.acquire();
+            return false;
+        }
+
+        m_lock.acquire();
+        decrWaitersCount();
+        last_waiter = (res == WAIT_OBJECT_0 + detail::CV_BROADCAST) && (m_waiters_count) == 0;
+        m_lock.release();
+        if (last_waiter) {
+            ResetEvent(m_events[detail::CV_BROADCAST]);
+        }
+        externalLock.acquire();
+        return true;
+    }
+
+protected:
+    inline void incrWaitersCount() {
+        ::InterlockedIncrement(&m_waiters_count);
+    }
+
+    inline void decrWaitersCount() {
+        ::InterlockedDecrement(&m_waiters_count);
+    }
+
+    inline void notify_(unsigned int event) {
+        bool have_waiters;
+
+        m_lock.acquire();
+        have_waiters = (m_waiters_count > 0);
+        m_lock.release();
+        if (have_waiters) {
+            SetEvent (m_events[event]);
+        }
+    }
+
 private:
-
+    volatile LONG m_waiters_count;
+    win::CriticalSection m_lock;
+    HANDLE m_events[detail::CV_EVENT_COUNT];
 };
 
 }
