@@ -33,9 +33,6 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #if !defined(__WSOCK_HPP)
 #define __WSOCK_HPP
 
-#define _WIN32_WINNT    0x601
-#include <Windows.h>
-
 namespace IOCP {
 
 class CWSock {
