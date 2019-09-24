@@ -32,12 +32,6 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #if !defined(__IOCP_HPP)
 #define __IOCP_HPP
 
-#define _WIN32_WINNT    0x601
-
-#include <WinSock2.h>
-#include <Ws2tcpip.h>
-#include <Mstcpip.h>
-
 
 #include <vector>
 

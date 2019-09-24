@@ -33,6 +33,24 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #if !defined(__COPI_HPP)
 #define __COPI_HPP
 
+
+#define _WIN32_WINNT    0x601
+//#include <Windows.h>
+#include <WinSock2.h>
+#include <Ws2tcpip.h>
+#include <Mstcpip.h>
+
+#if _MSC_VER > 1500
+    #include <intrin.h>
+    #define ATOMIC_INCR(v)          ::_InterlockedIncrement((v))
+    #define ATOMIC_DECR(v)          ::_InterlockedDecrement((v))
+    #define ATOMIC_CAS(v, a, b)     ::_InterlockedCompareExchange((v), (a), (b))
+#else
+    #define ATOMIC_INCR(v)          ::InterlockedIncrement((v))
+    #define ATOMIC_DECR(v)          ::InterlockedDecrement((v))
+    #define ATOMIC_CAS(v, a, b)     ::InterlockedCompareExchange((v), (a), (b))
+#endif
+
 #include "_exceptions.hpp"
 #include "_iocp.hpp"
 #include "_helper.hpp"

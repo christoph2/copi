@@ -33,23 +33,11 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #if !defined(__HELPER_HPP)
 #define __HELPER_HPP
 
-#define _WIN32_WINNT    0x601
-#include <Windows.h>
-
+#include "copi.hpp"
 #include <string>
 
 namespace IOCP {
 
-#if _MSC_VER > 1500
-    #include <intrin.h>
-    #define ATOMIC_INCR(v)          ::_InterlockedIncrement((v))
-    #define ATOMIC_DECR(v)          ::_InterlockedDecrement((v))
-    #define ATOMIC_CAS(v, a, b)     ::_InterlockedCompareExchange((v), (a), (b))
-#else
-    #define ATOMIC_INCR(v)          ::InterlockedIncrement((v))
-    #define ATOMIC_DECR(v)          ::InterlockedDecrement((v))
-    #define ATOMIC_CAS(v, a, b)     ::InterlockedCompareExchange((v), (a), (b))
-#endif
 
 class CSystemInformation {
 public:

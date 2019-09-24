@@ -32,13 +32,6 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "_helper.hpp"
 #include <string>
 
-extern "C" {
-void PyInit__helper(void)
-{
-
-}
-};
-
 namespace IOCP {
 
 static bool _isWow64();

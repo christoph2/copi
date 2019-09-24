@@ -33,6 +33,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include <iostream>
 
+
 namespace IOCP {
 
 
@@ -87,6 +88,47 @@ bool CriticalSection::try_acquire()
     m_is_locked = (TryEnterCriticalSection(&m_crit_section) == TRUE);
     return m_is_locked;
 }
+
+class CBenaphore
+{
+public:
+    CBenaphore()
+    {
+        m_counter = 0;
+        m_semaphore = CreateSemaphore(NULL, 0, 1, NULL);
+    }
+
+    ~CBenaphore()
+    {
+        CloseHandle(m_semaphore);
+    }
+
+    void acquire()
+    {
+        if (ATOMIC_INCR(&m_counter) > 1)
+        {
+            WaitForSingleObject(m_semaphore, INFINITE);
+        }
+    }
+
+    void release()
+    {
+        if (ATOMIC_DECR(&m_counter) > 0)
+        {
+            ReleaseSemaphore(m_semaphore, 1, NULL);
+        }
+    }
+
+    bool try_acquire()
+    {
+        LONG result = ATOMIC_CAS(&m_counter, 1, 0);
+        return (result == 0);
+    }
+
+private:
+    volatile LONG m_counter;
+    HANDLE m_semaphore;
+};
 
 
 }
