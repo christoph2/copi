@@ -99,11 +99,11 @@ public:
 
 protected:
     inline void incrWaitersCount() {
-        ::InterlockedIncrement(&m_waiters_count);
+        ATOMIC_INCR(&m_waiters_count);
     }
 
     inline void decrWaitersCount() {
-        ::InterlockedDecrement(&m_waiters_count);
+        ATOMIC_DECR(&m_waiters_count);
     }
 
     inline void notify_(unsigned int event) {
