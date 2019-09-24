@@ -58,6 +58,7 @@ CriticalSection::CriticalSection(DWORD spincount)
 CriticalSection::~CriticalSection()
 {
     if (m_is_locked) {
+//        std::cout << "\tdtor() release locked" << &m_crit_section << std::endl;
         release();
     }
     DeleteCriticalSection(&m_crit_section);
@@ -67,11 +68,14 @@ void CriticalSection::acquire()
 {
     EnterCriticalSection(&m_crit_section);
     m_is_locked = true;
+//    std::cout << "acquire() " << &m_crit_section << std::endl;
 }
 
 void CriticalSection::release()
 {
+//    std::cout << "release() " << &m_crit_section << std::endl;
     if (!m_is_locked) {
+//        std::cout << "\tnot locked" << &m_crit_section << std::endl;
         return;
     }
     LeaveCriticalSection(&m_crit_section);
