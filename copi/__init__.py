@@ -4,7 +4,7 @@
 
 __author__ = """Christoph Schueler"""
 __email__ = 'cpu12.gems@googlemail.com'
-__version__ = '0.1.12'
+__version__ = '0.1.13'
 
 
 from . copi import SystemInformation
