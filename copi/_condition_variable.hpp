@@ -41,6 +41,8 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "copi.hpp"
 
+#include <iostream>
+
 namespace IOCP {
 
 namespace detail {
@@ -52,8 +54,7 @@ namespace detail {
 
 class ConditionVariable {
 public:
-    ConditionVariable(DWORD spincount = 0) : m_waiters_count(0) {
-        m_lock = win::CriticalSection(spincount);
+    ConditionVariable(DWORD spincount = 0) : m_waiters_count(0), m_lock(spincount) {
         m_events[detail::CV_SIGNAL]     = ::CreateEvent (NULL, FALSE, FALSE, NULL);   // Auto-reset.
         m_events[detail::CV_BROADCAST]  = ::CreateEvent (NULL, TRUE, FALSE, NULL);    // Manual-reset
     }
