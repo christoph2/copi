@@ -39,9 +39,9 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 
 namespace IOCP {
 
-class SystemInformation {
+class CSystemInformation {
 public:
-    SystemInformation();
+    CSystemInformation();
     DWORD getPageSize() const;
     DWORD getAllocationGranularity() const;
     DWORD getNumberOfProcessors() const;

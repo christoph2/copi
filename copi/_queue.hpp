@@ -37,13 +37,11 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 
 namespace IOCP {
 
-template <typename T> class Queue {
+template <typename T> class CQueue {
 public:
-    Queue() {
-        m_lock = win::CriticalSection();
-    }
+    CQueue(DWORD spincount = 0) : m_lock(spincount), m_cv(spincount) {}
 
-    ~Queue() {}
+    ~CQueue() {}
 
     void push(const T& data) {
         m_lock.acquire();
@@ -52,11 +50,11 @@ public:
         m_cv.notify_one();
     }
 
-    void pop(T& data) {
+    void pop(T& data, DWORD millis = INFINITE) {
         m_lock.acquire();
 
         while (m_queue.empty()) {
-            m_cv.wait(m_lock);
+            m_cv.wait(m_lock, millis);
         }
 
         data = m_queue.front();
@@ -85,7 +83,7 @@ public:
 private:
     std::queue<T> m_queue;
     win::CriticalSection m_lock;
-    ConditionVariable m_cv;
+    CConditionVariable m_cv;
 };
 
 }

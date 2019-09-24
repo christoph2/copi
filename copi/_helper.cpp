@@ -43,7 +43,7 @@ namespace IOCP {
 
 static bool _isWow64();
 
-SystemInformation::SystemInformation()
+CSystemInformation::CSystemInformation()
 {
     if (isWow64()) {
         ::GetNativeSystemInfo(&m_info);
@@ -52,22 +52,22 @@ SystemInformation::SystemInformation()
     }
 }
 
-bool SystemInformation::isWow64() const
+bool CSystemInformation::isWow64() const
 {
     return _isWow64();
 }
 
-DWORD SystemInformation::getPageSize() const
+DWORD CSystemInformation::getPageSize() const
 {
     return m_info.dwPageSize;
 }
 
-DWORD SystemInformation::getAllocationGranularity() const
+DWORD CSystemInformation::getAllocationGranularity() const
 {
     return m_info.dwAllocationGranularity;
 }
 
-DWORD SystemInformation::getNumberOfProcessors() const
+DWORD CSystemInformation::getNumberOfProcessors() const
 {
     return m_info.dwNumberOfProcessors;
 }

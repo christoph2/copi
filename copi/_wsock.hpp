@@ -38,10 +38,10 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 
 namespace IOCP {
 
-class WSock {
+class CWSock {
 public:
-    WSock();
-    ~WSock();
+    CWSock();
+    ~CWSock();
 };
 
 }

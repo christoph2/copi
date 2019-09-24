@@ -41,7 +41,7 @@ void PyInit__wsock(void)
 
 namespace IOCP {
 
-WSock::WSock()
+CWSock::CWSock()
 {
     WSAData data;
 
@@ -50,7 +50,7 @@ WSock::WSock()
     }
 }
 
-WSock::~WSock()
+CWSock::~CWSock()
 {
     WSACleanup();
 }

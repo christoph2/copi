@@ -52,14 +52,14 @@ namespace detail {
     const unsigned int CV_BROADCAST     = 1;
 }
 
-class ConditionVariable {
+class CConditionVariable {
 public:
-    ConditionVariable(DWORD spincount = 0) : m_waiters_count(0), m_lock(spincount) {
+    CConditionVariable(DWORD spincount = 0) : m_waiters_count(0), m_lock(spincount) {
         m_events[detail::CV_SIGNAL]     = ::CreateEvent (NULL, FALSE, FALSE, NULL);   // Auto-reset.
         m_events[detail::CV_BROADCAST]  = ::CreateEvent (NULL, TRUE, FALSE, NULL);    // Manual-reset
     }
 
-    ~ConditionVariable() {
+    ~CConditionVariable() {
         for (int idx = 0; idx < detail::CV_EVENT_COUNT; ++idx) {
             ::CloseHandle(m_events[idx]);
         }

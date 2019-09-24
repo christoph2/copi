@@ -52,7 +52,7 @@ IOCP::IOCP(DWORD numProcessors)
     if (m_port.handle == NULL) {
         throw WindowsException();
     }
-    SystemInformation si = SystemInformation();
+    CSystemInformation si = CSystemInformation();
 
     if (numProcessors == 0) {
         numProcessors = si.getNumberOfProcessors();
