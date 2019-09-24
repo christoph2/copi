@@ -8,19 +8,19 @@ ctypedef types.uint32_t DWORD
 
 cdef extern from "copi.hpp" namespace "IOCP":
 
-    cdef cppclass SystemInformation:
-        SystemInformation()
+    cdef cppclass CSystemInformation:
+        CSystemInformation()
         DWORD getPageSize()
         DWORD getAllocationGranularity()
         DWORD getNumberOfProcessors()
         bool isWow64()
 
-cdef class SI:
+cdef class SystemInformation:
 
-    cdef SystemInformation *_thisptr
+    cdef CSystemInformation *_thisptr
 
     def __cinit__(self):
-        self._thisptr = new SystemInformation()
+        self._thisptr = new CSystemInformation()
         if self._thisptr == NULL:
             raise MemoryError()
 

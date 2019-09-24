@@ -7,4 +7,4 @@ __email__ = 'cpu12.gems@googlemail.com'
 __version__ = '0.1.12'
 
 
-from . copi import SI
+from . copi import SystemInformation
