@@ -50,16 +50,21 @@ public:
         m_cv.notify_one();
     }
 
-    void pop(T& data, DWORD millis = INFINITE) {
+    bool pop(T& data, DWORD millis = INFINITE) {
+        bool res;
         m_lock.acquire();
 
         while (m_queue.empty()) {
-            m_cv.wait(m_lock, millis);
+            res = m_cv.wait(m_lock, millis);
+            if (!res) {
+                return false;
+            }
         }
 
         data = m_queue.front();
         m_queue.pop();
         m_lock.release();
+        return true;
     }
 
     bool empty() {
