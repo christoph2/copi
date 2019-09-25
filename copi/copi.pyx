@@ -4,9 +4,14 @@
 from cpython.bool cimport bool
 cimport libc.stdint as types
 
+class TimeoutError(Exception):
+    """
+    """
+    pass
+
 ctypedef types.uint32_t DWORD
 
-cdef extern from "copi.hpp" namespace "IOCP":
+cdef extern from "copi.hpp" namespace "COPI":
 
     cdef cppclass CSystemInformation:
         CSystemInformation()
@@ -18,7 +23,7 @@ cdef extern from "copi.hpp" namespace "IOCP":
     cdef cppclass CQueue[T]:
         CQueue(DWORD spincount) except +
         void push(T& data)
-        void pop(T& data, DWORD millis)
+        bool pop(T& data, DWORD millis)
         bool empty()
         T& front()
 
@@ -64,8 +69,11 @@ cdef class Queue:
         self._thisptr.push(data)
 
     cpdef types.uint64_t pop(self, DWORD millis):
-        cdef types.uint64_t data
-        self._thisptr.pop(data, millis)
+        cdef types.uint64_t data = 0
+        cdef bool res
+        res = self._thisptr.pop(data, millis)
+        if not res:
+            raise TimeoutError()
         return data
 
     cpdef bint empty(self):

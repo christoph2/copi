@@ -35,7 +35,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "copi.hpp"
 #include <MSWSock.h>
 
-namespace IOCP {
+namespace COPI {
 
 typedef std::vector<ADDRINFO *> AddressListType;
 

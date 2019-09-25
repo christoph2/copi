@@ -43,7 +43,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include <iostream>
 
-namespace IOCP {
+namespace COPI {
 
 namespace detail {
     const unsigned int CV_EVENT_COUNT   = 2;

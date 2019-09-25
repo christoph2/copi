@@ -32,7 +32,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "_helper.hpp"
 #include <string>
 
-namespace IOCP {
+namespace COPI {
 
 static bool _isWow64();
 

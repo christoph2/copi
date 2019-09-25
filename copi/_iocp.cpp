@@ -42,7 +42,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  */
 
-namespace IOCP {
+namespace COPI {
 
 static DWORD WINAPI WorkerThread(LPVOID lpParameter);
 

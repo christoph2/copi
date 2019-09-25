@@ -33,7 +33,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #if !defined(__WSOCK_HPP)
 #define __WSOCK_HPP
 
-namespace IOCP {
+namespace COPI {
 
 class CWSock {
 public:

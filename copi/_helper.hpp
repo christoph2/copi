@@ -36,7 +36,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "copi.hpp"
 #include <string>
 
-namespace IOCP {
+namespace COPI {
 
 
 class CSystemInformation {

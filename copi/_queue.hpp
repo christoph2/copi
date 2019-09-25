@@ -35,7 +35,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "copi.hpp"
 #include <queue>
 
-namespace IOCP {
+namespace COPI {
 
 template <typename T> class CQueue {
 public:

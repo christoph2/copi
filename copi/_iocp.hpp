@@ -39,7 +39,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #pragma comment(lib,"ws2_32.lib") // MSVC only.
 #endif
 
-namespace IOCP {
+namespace COPI {
 
 typedef std::vector<char> BufferType;
 

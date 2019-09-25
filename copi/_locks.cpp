@@ -34,7 +34,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <iostream>
 
 
-namespace IOCP {
+namespace COPI {
 
 
 ScopedLock::ScopedLock(Lock const &lock)

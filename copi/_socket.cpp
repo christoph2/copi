@@ -33,7 +33,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include <MSWSock.h>
 
-namespace IOCP {
+namespace COPI {
 
 //LPFN_CONNECTEX Socket::ConnectEx = NULL;
 

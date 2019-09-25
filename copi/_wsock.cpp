@@ -39,7 +39,7 @@ void PyInit__wsock(void)
 };
 
 
-namespace IOCP {
+namespace COPI {
 
 CWSock::CWSock()
 {

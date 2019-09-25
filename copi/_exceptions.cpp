@@ -32,7 +32,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "_exceptions.hpp"
 
-namespace IOCP {
+namespace COPI {
 
 const char * WindowsException::what () const throw ()
 {

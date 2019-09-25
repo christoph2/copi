@@ -35,7 +35,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include <exception>
 
-namespace IOCP {
+namespace COPI {
 
 struct WindowsException : public std::exception {
    const char * what () const throw ();
