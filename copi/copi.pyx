@@ -71,7 +71,8 @@ cdef class Queue:
         self._thisptr.put(data)
 
     cpdef types.uint64_t get(self, DWORD millis = INFINITE):
-        cdef types.uint64_t data
+        #cdef types.uint64_t data
+        data = None
         cdef bool res
         res = self._thisptr.get(data, millis)
         if not res:
