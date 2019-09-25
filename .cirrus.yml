@@ -1,5 +1,5 @@
 windows_container:
-    image: cirrusci/windowsservercore:2019
+    image: cirrusci/python:3-windowsservercore:2019
     os_version: 2019
 
 test_task:
