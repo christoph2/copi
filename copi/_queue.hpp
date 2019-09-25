@@ -43,14 +43,14 @@ public:
 
     ~CQueue() {}
 
-    void push(const T& data) {
+    void put(const T& data) {
         m_lock.acquire();
         m_queue.push(data);
         m_lock.release();
         m_cv.notify_one();
     }
 
-    bool pop(T& data, DWORD millis = INFINITE) {
+    bool get(T& data, DWORD millis = INFINITE) {
         bool res;
         m_lock.acquire();
 

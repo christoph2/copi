@@ -25,10 +25,9 @@ cdef extern from "copi.hpp" namespace "COPI":
 
     cdef cppclass CQueue[T]:
         CQueue(DWORD spincount) except +
-        void push(T& data)
-        bool pop(T& data, DWORD millis)
+        void put(T& data)
+        bool get(T& data, DWORD millis)
         bool empty()
-        T& front()
 
 cdef class SystemInformation:
 
@@ -68,13 +67,13 @@ cdef class Queue:
         if self._thisptr != NULL:
             del self._thisptr
 
-    cpdef void push(self, types.uint64_t data):
-        self._thisptr.push(data)
+    cpdef void put(self, types.uint64_t data):
+        self._thisptr.put(data)
 
-    cpdef types.uint64_t pop(self, DWORD millis = INFINITE):
+    cpdef types.uint64_t get(self, DWORD millis = INFINITE):
         cdef types.uint64_t data = 0
         cdef bool res
-        res = self._thisptr.pop(data, millis)
+        res = self._thisptr.get(data, millis)
         if not res:
             raise TimeoutError()
         return data
