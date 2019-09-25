@@ -16,7 +16,7 @@ cdef extern from "copi.hpp" namespace "IOCP":
         bool isWow64()
 
     cdef cppclass CQueue[T]:
-        CQueue(DWORD spincount)
+        CQueue(DWORD spincount) except +
         void push(T& data)
         void pop(T& data, DWORD millis)
         bool empty()
@@ -64,6 +64,12 @@ cdef class Queue:
         self._thisptr.push(data)
 
     cpdef types.uint64_t pop(self, DWORD millis):
-        data = None
+        cdef types.uint64_t data
         self._thisptr.pop(data, millis)
         return data
+
+    cpdef bint empty(self):
+        return self._thisptr.empty()
+
+    cpdef types.uint64_t front(self):
+        return self._thisptr.front()
