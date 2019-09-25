@@ -4,6 +4,9 @@
 from cpython.bool cimport bool
 cimport libc.stdint as types
 
+
+DEF INFINITE = 0xFFFFFFFF  # Infinite timeout
+
 class TimeoutError(Exception):
     """
     """
@@ -68,7 +71,7 @@ cdef class Queue:
     cpdef void push(self, types.uint64_t data):
         self._thisptr.push(data)
 
-    cpdef types.uint64_t pop(self, DWORD millis):
+    cpdef types.uint64_t pop(self, DWORD millis = INFINITE):
         cdef types.uint64_t data = 0
         cdef bool res
         res = self._thisptr.pop(data, millis)
@@ -78,6 +81,3 @@ cdef class Queue:
 
     cpdef bint empty(self):
         return self._thisptr.empty()
-
-    cpdef types.uint64_t front(self):
-        return self._thisptr.front()

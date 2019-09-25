@@ -76,15 +76,6 @@ public:
         return result;
     }
 
-    T& front() {
-        T result;
-
-        m_lock.acquire();
-        result = m_queue.front();
-        m_lock.release();
-        return result;
-    }
-
 private:
     std::queue<T> m_queue;
     win::CriticalSection m_lock;
