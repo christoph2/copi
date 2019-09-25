@@ -6,7 +6,7 @@
 from setuptools import setup, find_packages, Extension
 from Cython.Build import cythonize
 
-options = ["/Ox", "/GS-"] # []
+options = ["/Ox", "/GS-", "/EHsc"] # []
 
 extensions = [
     Extension(name = "copi.copi", sources = ["copi/copi.pyx", "copi/_iocp.cpp",
