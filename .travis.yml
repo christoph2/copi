@@ -7,10 +7,10 @@ python:
     - 3.5
     - 3.6
     - 3.7
+    - 3.8
 
 os:
-  - linux
-#  - osx
+  - windows
 
 notifications:
   email: false
@@ -23,10 +23,10 @@ install:
 script:
 #  python -m unittest discover ./objutils/tests/
 #   python ./objutils/tools/readelf.py
-   coverage run --source=pyxcp setup.py test
+   coverage run --source=copi setup.py test
 
 after_success:
-  - pylint pyxcp
+  - pylint copi
   - coveralls
   - coverage xml && python-codacy-coverage -r coverage.xml
   - codeclimate-test-reporter
