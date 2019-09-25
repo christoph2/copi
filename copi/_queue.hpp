@@ -72,7 +72,7 @@ public:
     }
 
     T& front() {
-        T& result;
+        T result;
 
         m_lock.acquire();
         result = m_queue.front();
