@@ -15,6 +15,13 @@ cdef extern from "copi.hpp" namespace "IOCP":
         DWORD getNumberOfProcessors()
         bool isWow64()
 
+    cdef cppclass CQueue[T]:
+        CQueue(DWORD spincount)
+        void push(T& data)
+        void pop(T& data, DWORD millis)
+        bool empty()
+        T& front()
+
 cdef class SystemInformation:
 
     cdef CSystemInformation *_thisptr
@@ -40,3 +47,23 @@ cdef class SystemInformation:
     cpdef bint isWow64(self):
         return self._thisptr.isWow64()
 
+cdef class Queue:
+
+    cdef CQueue[types.uint64_t] *_thisptr
+
+    def __cinit__(self):
+        self._thisptr = new CQueue[types.uint64_t](0)
+        if self._thisptr == NULL:
+            raise MemoryError()
+
+    def __dealloc__(self):
+        if self._thisptr != NULL:
+            del self._thisptr
+
+    cpdef void push(self, types.uint64_t data):
+        self._thisptr.push(data)
+
+    cpdef types.uint64_t pop(self, DWORD millis):
+        data = None
+        self._thisptr.pop(data, millis)
+        return data
