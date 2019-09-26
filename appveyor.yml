@@ -62,7 +62,7 @@ artifacts:
 
 deploy:
 - provider: GitHub
-  artifact: '*.*'
+  artifact: dist\*
   on:
       #branch: master
       appveyor_repo_tag: true
