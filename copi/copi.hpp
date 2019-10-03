@@ -56,10 +56,10 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "_helper.hpp"
 #include "_locks.hpp"
 #include "_condition_variable.hpp"
+#include "_socket.hpp"
 #include "_queue.hpp"
 #include "_file.hpp"
 #include "_mmap.hpp"
-#include "_socket.hpp"
 #include "_wsock.hpp"
 
 #endif // __COPI_HPP

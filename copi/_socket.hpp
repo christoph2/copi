@@ -37,24 +37,44 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 
 namespace COPI {
 
-typedef std::vector<ADDRINFO *> AddressListType;
+struct CAddress {
+    int length;
+    struct sockaddr address;
+};
 
-class Socket {
+class CSocket {
 public:
-    Socket(IOCP * iocp, int family, int socktype, int protocol, int options = 0);
-    ~Socket();
+    //Socket() {};
+    CSocket(IOCP * iocp, int family = PF_INET, int socktype = SOCK_STREAM, int protocol = IPPROTO_TCP, int options = 0);
+    ~CSocket();
 
     void getOption(int option, char * optval, int * optlen);
     void setOption(int option, const char * optval, int optlen);
-    int connect(const char *hostname, int port, int family);
+    bool getaddrinfo(int family, int socktype, int protocol, const char * hostname, int port, CAddress & address, int flags = AI_PASSIVE);
+    bool connect(CAddress & address);
+    bool disconnect();
+    bool bind(CAddress & address);
+    bool listen(int backlog = 10);
+    bool accept(CAddress & peerAddress);
+    void send(char * buf, unsigned int len);
+    void triggerRecv(unsigned int len);
     HANDLE getHandle() const;
-    bool resolve(const char *hostname, int port, int family, AddressListType & addresses);
     LPFN_CONNECTEX connectEx;
 protected:
     void loadFunctions();
 private:
+    int m_family;
+    int m_socktype;
+    int m_protocol;
+    bool m_connected;
     IOCP * m_iocp;
+    ADDRINFO * m_addr;
     SOCKET m_socket;
+    SOCKADDR_STORAGE m_peerAddress;
+
+    CPerIOData * m_acceptOlap;
+    CPerIOData * m_recvOlap;
+    CPerIOData * m_sendOlap;
 };
 
 

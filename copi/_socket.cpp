@@ -35,21 +35,27 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 
 namespace COPI {
 
-//LPFN_CONNECTEX Socket::ConnectEx = NULL;
 
-Socket::Socket(IOCP * iocp, int family, int socktype, int protocol, int options)
+CSocket::CSocket(IOCP * iocp, int family, int socktype, int protocol, int options)
 {
+    m_family = family;
+    m_socktype = socktype;
+    m_protocol = protocol;
+    m_connected = false;
     m_iocp = iocp;
+    m_addr = NULL;
     loadFunctions();
-    m_socket = WSASocket(family, socktype, protocol, NULL, 0, WSA_FLAG_OVERLAPPED | options);
+    m_socket = ::WSASocket(family, socktype, protocol, NULL, 0, WSA_FLAG_OVERLAPPED | options);
+    SecureZeroMemory(&m_peerAddress, sizeof(SOCKADDR_STORAGE));
 }
 
-Socket::~Socket()
+CSocket::~CSocket()
 {
-    closesocket(m_socket);
+    printf("~CSocket()\n");
+    ::closesocket(m_socket);
 }
 
-void Socket::loadFunctions()
+void CSocket::loadFunctions()
 {
     int res;
     DWORD dwBytes;
@@ -64,114 +70,198 @@ void Socket::loadFunctions()
         &connectEx, sizeof(connectEx),
         &dwBytes, NULL, NULL
     );
-    closesocket(dummy_socket);
+    ::closesocket(dummy_socket);
 }
 
-HANDLE Socket::getHandle() const
+HANDLE CSocket::getHandle() const
 {
     return reinterpret_cast<HANDLE>(m_socket);
 }
 
-void Socket::setOption(int option, const char * optval, int optlen)
+void CSocket::setOption(int option, const char * optval, int optlen)
 {
-    setsockopt(m_socket, SOL_SOCKET, option, optval, optlen);
+    ::setsockopt(m_socket, SOL_SOCKET, option, optval, optlen);
 }
 
-void Socket::getOption(int option, char * optval, int * optlen)
+void CSocket::getOption(int option, char * optval, int * optlen)
 {
-    getsockopt(m_socket, SOL_SOCKET, option, optval, optlen);
+    ::getsockopt(m_socket, SOL_SOCKET, option, optval, optlen);
 }
 
-int Socket::connect(const char *hostname, int port, int family)
+bool CSocket::bind(CAddress & address)
+{
+
+    if (::bind(m_socket, &address.address, address.length) == SOCKET_ERROR) {
+        Win_ErrorMsg("Socket::bind()", WSAGetLastError());
+        return false;
+    }
+    return true;
+}
+
+bool CSocket::connect(CAddress & address)
+{
+    if (::connect(m_socket, &address.address, address.length) == SOCKET_ERROR) {
+        Win_ErrorMsg("Socket::connect()", WSAGetLastError());
+        return false;
+    }
+    PerHandleData handleData(HANDLE_SOCKET, getHandle());
+    m_iocp->registerHandle(&handleData);
+    m_connected = true;
+    return true;
+}
+
+bool CSocket::disconnect()
+{
+    //::disconnect();
+    return true;
+}
+
+bool CSocket::listen(int backlog)
+{
+    if (::listen(m_socket, backlog) == SOCKET_ERROR) {
+        Win_ErrorMsg("Socket::listen()", WSAGetLastError());
+        return false;
+    }
+    return true;
+}
+
+bool CSocket::accept(CAddress & peerAddress)
 {
     SOCKET sock;
-    int err;
-    ADDRINFO hints = {}, *addr;
-    char port_str[16] = {};
 
-    SecureZeroMemory(&hints, sizeof(hints));
-    hints.ai_family = family;
-    hints.ai_socktype = SOCK_STREAM;
-    hints.ai_protocol = IPPROTO_TCP;
-    //hints.ai_flags = AI_NUMERICHOST | AI_PASSIVE;
-    hints.ai_flags = 0; //AI_PASSIVE;
+    peerAddress.length = sizeof peerAddress.address;
+    sock = ::accept(m_socket, (sockaddr *)&peerAddress.address, &peerAddress.length);
 
-    sprintf(port_str, "%d", port);
-
-    sock = socket(family, SOCK_STREAM, 0);
-
-    err = getaddrinfo(hostname, port_str, &hints, &addr);
-    // Grap the first address or except.
-    if (err != 0)
-    {
-        //throw WindowsException();
-    }
-
-    if (::connect(sock, addr->ai_addr, addr->ai_addrlen) == 0) {
-        printf("Connected to: %x [%d]\n", addr->ai_addr, addr->ai_family);
-        //break;
-    } else {
-        printf("Connect failed: %d\n", WSAGetLastError());
-        Win_ErrorMsg("connect", WSAGetLastError());
+    if (sock  == SOCKET_ERROR) {
+        Win_ErrorMsg("Socket::accept()", WSAGetLastError());
+        return false;
     }
     return true;
 }
 
-bool Socket::resolve(const char *hostname, int port, int family, AddressListType & addresses)
+bool CSocket::getaddrinfo(int family, int socktype, int protocol, const char * hostname, int port, CAddress & address, int flags)
 {
     int err;
-    ADDRINFO hints = {}, *addrs;
-    char port_str[16] = {};
+    ADDRINFO hints;
+    ADDRINFO * t_addr;
+    char port_str[16] = {0};
 
-    SecureZeroMemory(&hints, sizeof(hints));
+    ::SecureZeroMemory(&hints, sizeof(hints));
     hints.ai_family = family;
-    hints.ai_socktype = SOCK_STREAM;
-    hints.ai_protocol = IPPROTO_TCP;
-    //hints.ai_flags = AI_NUMERICHOST | AI_PASSIVE;
-    hints.ai_flags = 0; //AI_PASSIVE;
+    hints.ai_socktype = socktype;
+    hints.ai_protocol = protocol;
+    hints.ai_flags = flags;
 
-    sprintf(port_str, "%d", port);
-
-    err = getaddrinfo(hostname, port_str, &hints, &addrs);
-    if (err != 0)
-    {
-        //throw WindowsException();
+    ::sprintf(port_str, "%d", port);
+    err = ::getaddrinfo(hostname, port_str, &hints, &t_addr);
+    if (err != 0) {
+        //gai_strerror(err);
+        ::freeaddrinfo(t_addr);
+        return false;
     }
 
-    for(struct addrinfo *addr = addrs; addr != NULL; addr = addr->ai_next)
-    {
-        PerHandleData ph;
+    address.length = t_addr->ai_addrlen;
+    ::CopyMemory(&address.address, t_addr->ai_addr, sizeof(struct sockaddr));
 
-        //inet_ntoa();
-        //InetNtop();
-#if 0
-        SecureZeroMemory(horst, NI_MAXHOST);
-        SecureZeroMemory(servInfo, NI_MAXSERV);
-
-        res = getnameinfo(addr->ai_addr,
-                    sizeof(sockaddr),
-                    (char*)&horst[0],
-                    NI_MAXHOST,
-                    (char*)&servInfo[0],
-                    NI_MAXSERV,
-                    NI_NUMERICSERV);
-        if (res == 0) {
-            printf("HOST: %s SERV: %s ADDR: ", horst, servInfo);
-            for (int j = 0; j < 14; ++j) {
-                printf("%02x ",addr->ai_addr->sa_data[j]);
-            }
-            printf("\n");
-        } else {
-            printf("getnameinfo error: %d [%d]\n", res, WSAGetLastError());
-        }
-#endif // 0
-
-    }
-
-    freeaddrinfo(addrs);
-
+    ::freeaddrinfo(t_addr);
     return true;
 }
 
+void CSocket::send(char * buf, unsigned int len)
+{
+    DWORD bytesWritten;
+    int addrLen;
+    CPerIOData * iod = new CPerIOData(128);
+
+    iod->m_wsabuf.buf = buf;
+    iod->m_wsabuf.len = len;
+    iod->m_opcode = IO_WRITE;
+    iod->m_bytesRemaining = iod->m_bytesToXfer = len;
+    iod->resetOverlapped();
+    iod->m_socket = this;
+
+    if (m_socktype == SOCK_DGRAM) {
+        addrLen = sizeof(SOCKADDR_STORAGE);
+        if (::WSASendTo(m_socket,
+            &iod->m_wsabuf,
+            1,
+            &bytesWritten,
+            0,
+            (LPSOCKADDR)&m_peerAddress,
+            addrLen,
+            (LPWSAOVERLAPPED)&iod->m_overlapped,
+            NULL
+        ) == SOCKET_ERROR) {
+            Win_ErrorMsg("Socket:WSASendTo()", WSAGetLastError());
+        }
+    } else if (m_socktype == SOCK_STREAM) {
+        if (::WSASend(
+            m_socket,
+            &iod->m_wsabuf,
+            1,
+            &bytesWritten,
+            0,
+            (LPWSAOVERLAPPED)&iod->m_overlapped,
+            NULL) == SOCKET_ERROR) {
+            Win_ErrorMsg("Socket:WSASend()", WSAGetLastError());
+            closesocket(m_socket);
+        }
+    }
+}
+
+void CSocket::triggerRecv(unsigned int len)
+{
+    DWORD numReceived = (DWORD)0;
+    DWORD flags = (DWORD)0;
+    DWORD err = 0;
+    int addrLen;
+    static char buf[1024];
+
+    CPerIOData * iod = new CPerIOData(128);
+
+    iod->m_wsabuf.buf = buf;
+    iod->m_wsabuf.len = len;
+    iod->m_opcode = IO_READ;
+    iod->m_bytesRemaining = iod->m_bytesToXfer = len;
+    iod->resetOverlapped();
+    iod->m_socket = this;
+
+
+//    SecureZeroMemory(&recvOlap.overlapped, sizeof(OVERLAPPED));
+
+    if (m_socktype == SOCK_STREAM) {
+//        if (XcpTl_Connection.socketConnected == XCP_FALSE) {
+//            return;
+//        }
+        if (WSARecv(m_socket,
+                    &iod->m_wsabuf,
+                    1,
+                    &numReceived,
+                    &flags,
+                    (LPWSAOVERLAPPED)&iod->m_overlapped,
+                    (LPWSAOVERLAPPED_COMPLETION_ROUTINE)NULL)  == SOCKET_ERROR) {
+            err = WSAGetLastError();
+            if (err != WSA_IO_PENDING) {
+                Win_ErrorMsg("CSocket::WSARecv()", err);
+            }
+        }
+    } else if (m_socktype == SOCK_DGRAM) {
+        addrLen = sizeof(SOCKADDR_STORAGE);
+        if (WSARecvFrom(m_socket,
+                    &iod->m_wsabuf,
+                    1,
+                    &numReceived,
+                    &flags,
+                    (LPSOCKADDR)&numReceived,
+                    &addrLen,
+                    (LPWSAOVERLAPPED)&iod->m_overlapped,
+                    (LPWSAOVERLAPPED_COMPLETION_ROUTINE)NULL)) {
+            err = WSAGetLastError();
+            if (err != WSA_IO_PENDING) {
+                Win_ErrorMsg("CSocket::WSARecvFrom()", WSAGetLastError());
+            }
+        }
+    }
+}
 
 }
