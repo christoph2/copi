@@ -41,8 +41,6 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 
 namespace COPI {
 
-typedef std::vector<char> BufferType;
-
 enum HandleType {
     HANDLE_SOCKET,
     HANDLE_FILE,
@@ -62,19 +60,46 @@ struct PerPortData {
 };
 
 struct PerHandleData {
-    HandleType handleType;
-    HANDLE handle;
-    DWORD seqNoSend;
-    DWORD seqNoRecv;
+    HandleType m_handleType;
+    HANDLE m_handle;
+    DWORD m_seqNoSend;
+    DWORD m_seqNoRecv;
+
+    PerHandleData(HandleType handleType, HANDLE handle) : m_handleType(handleType),
+        m_handle(handle), m_seqNoSend(0), m_seqNoRecv(0) {}
 };
 
+class CSocket;
 
-struct PerIOData {
-    OVERLAPPED overlapped;
-    IOType ioType;
-    BufferType xferBuffer;
-    size_t bytesToXfer;
-    size_t bytesRemaining;
+struct CPerIOData {
+    OVERLAPPED m_overlapped;
+    IOType m_opcode;
+    WSABUF m_wsabuf;
+    CSocket * m_socket;
+    char * m_xferBuffer;
+    size_t m_bytesToXfer;
+    size_t m_bytesRemaining;
+
+    CPerIOData(size_t bufferSize) {
+        m_xferBuffer = NULL;
+        m_xferBuffer = new char[bufferSize];
+        m_wsabuf.buf = m_xferBuffer;
+        m_wsabuf.len = bufferSize;
+        m_socket = NULL;
+        m_bytesRemaining = 0;
+        m_bytesToXfer = 0;
+//        m_socket = NULL;
+    }
+
+    ~CPerIOData() {
+        if (m_xferBuffer) {
+            delete[] m_xferBuffer;
+        }
+    }
+
+    void resetOverlapped() {
+        SecureZeroMemory(&m_overlapped, sizeof(OVERLAPPED));
+    }
 };
 
 struct ThreadType {

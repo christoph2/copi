@@ -79,7 +79,6 @@ IOCP::~IOCP()
     DWORD rounds = static_cast<DWORD>(divres.quot);
     DWORD remaining = static_cast<DWORD>(divres.rem);
     HANDLE * thrArray = NULL;
-
     DWORD offset = 0;
 
     postQuitMessage();
@@ -109,7 +108,7 @@ bool IOCP::registerHandle(PerHandleData * object)
 {
     HANDLE handle;
 
-    handle = ::CreateIoCompletionPort(object->handle, m_port.handle, reinterpret_cast<ULONG_PTR>(object), 0);
+    handle = ::CreateIoCompletionPort(object->m_handle, m_port.handle, reinterpret_cast<ULONG_PTR>(object), 0);
     printf("Registered Handle: %p\n", handle);
     if (handle == NULL) {
         throw WindowsException();
@@ -138,80 +137,49 @@ void IOCP::postUserMessage() const
 static DWORD WINAPI WorkerThread(LPVOID lpParameter)
 {
     IOCP const * const iocp = reinterpret_cast<IOCP const * const>(lpParameter);
-    DWORD NumBytesRecv = 0;
+    DWORD numBytesRecv = 0;
     ULONG_PTR CompletionKey;
-    PerIOData * iod = NULL;
-    OVERLAPPED * ov = NULL;
+    CPerIOData * iod = NULL;
+    OVERLAPPED * olap = NULL;
     bool exitLoop = FALSE;
     static WSABUF wsaBuffer;
     DWORD flags = (DWORD)0;
     DWORD error;
 
-//    wsaBuffer.buf = receiveBuffer;
-//    wsaBuffer.len = XCP_COMM_BUFLEN;
 
     printf("Entering thread with [%p] [%d]...\n", iocp, iocp->getHandle());
     while (!exitLoop) {
-        if (::GetQueuedCompletionStatus(iocp->getHandle(), &NumBytesRecv, &CompletionKey, (LPOVERLAPPED*)&ov, INFINITE)) {
-            printf("Got Event: %ld %ld", NumBytesRecv, CompletionKey);
-            if ((NumBytesRecv == 0) &&  (CompletionKey == NULL)) {
+        if (::GetQueuedCompletionStatus(iocp->getHandle(), &numBytesRecv, &CompletionKey, (LPOVERLAPPED*)&olap, INFINITE)) {
+            //printf("Got Event: %ld %ld\n", numBytesRecv, CompletionKey);
+            if ((numBytesRecv == 0) &&  (CompletionKey == NULL)) {
                 iocp->postQuitMessage();    // "Broadcast"
                 exitLoop = TRUE;
             } else {
-#if 0
-                iod = (PerIoData*)ov;
-                //printf("\tOPCODE: %d\n", iod->opcode);
-                switch (iod->opcode) {
-                    case IoRead:
-                        WSARecv(XcpTl_Connection.connectedSocket,
-                                &wsaBuffer,
-                                1,
-                                &numReceived,
-                                &flags,
-                                (LPWSAOVERLAPPED)NULL,
-                                (LPWSAOVERLAPPED_COMPLETION_ROUTINE)NULL
-                        );
-                        if (numReceived == (DWORD)0) {
-                            DBG_PRINT1("Client closed connection\n");
-                            //if (!CancelIo((HANDLE)XcpTl_Connection.connectedSocket)) {
-                            //    printf("Cancelation failed.\n");
-                            //}
-                            XcpTl_Connection.socketConnected = XCP_FALSE;
-                            closesocket(XcpTl_Connection.connectedSocket);
-                            Xcp_Disconnect();
-                        }
-                        XcpTl_Receive(0);
-                        //XcpUtl_Hexdump(buf, numReceived);
-                        if (numReceived > 0) {
-#if XCP_TRANSPORT_LAYER_LENGTH_SIZE == 1
-                            dlc = (uint16_t)buf[0];
-#elif XCP_TRANSPORT_LAYER_LENGTH_SIZE == 2
-                            dlc = MAKEWORD(buf[0], buf[1]);
-                            //dlc = (uint16_t)*(buf + 0);
-#endif // XCP_TRANSPORT_LAYER_LENGTH_SIZE
-                            if (!XcpTl_Connection.xcpConnected || (XcpTl_VerifyConnection())) {
-                                Xcp_PduIn.len = dlc;
-                                Xcp_PduIn.data = buf + XCP_TRANSPORT_LAYER_BUFFER_OFFSET;
-                                Xcp_DispatchCommand(&Xcp_PduIn);
-                            }
-                            if (numReceived < 5) {
-                                DBG_PRINT2("Error: frame to short: %d\n", numReceived);
-                            } else {
 
-                            }
-                            fflush(stdout);
+                iod = (CPerIOData*)olap;
+                printf("\tOPCODE: %d bytes: %d\n", iod->m_opcode, numBytesRecv);
+                switch (iod->m_opcode) {
+                    case IO_WRITE:
+                        iod->m_bytesRemaining -= numBytesRecv;
+                        iod->m_socket->triggerRecv(1024);
+                        if (iod->m_bytesRemaining == 0) {
+                            delete iod;
+                        } else {
+                            iod->m_wsabuf.buf = iod->m_wsabuf.buf + (iod->m_bytesToXfer - iod->m_bytesRemaining);
+                            iod->m_wsabuf.len = iod->m_bytesRemaining;
+                            iod->resetOverlapped();
                         }
                         break;
-                    case IoAccept:
+                    case IO_READ:
+                        printf("IO_READ() numBytes: %d\n", numBytesRecv);
                         break;
-                    case IoWrite:
+                    case IO_ACCEPT:
                         break;
                 }
-#endif // 0
             }
         } else {
             error = GetLastError();
-            if (ov == NULL) {
+            if (olap == NULL) {
 
             } else {
                 // Failed I/O operation.
@@ -224,54 +192,4 @@ static DWORD WINAPI WorkerThread(LPVOID lpParameter)
     ExitThread(0);
     return 0;
 }
-
-#if 0
-std::vector<char> myData;
-for (;;) {
-    const int BufferSize = 1024;
-
-    const size_t oldSize = myData.size();
-    myData.resize(myData.size() + BufferSize);
-
-    const unsigned bytesRead = get_network_data(&myData[oldSize], BufferSize);
-    myData.resize(oldSize + bytesRead);
-
-    if (bytesRead == 0) {
-        break;
-    }
-}
-
-
-std::vector<char> myData;
-for (;;) {
-    const int BufferSize = 1024;
-    char rawBuffer[BufferSize];
-
-    const unsigned bytesRead = get_network_data(rawBuffer, sizeof(rawBuffer));
-    if (bytesRead <= 0) {
-        break;
-    }
-
-    myData.insert(myData.end(), rawBuffer, rawBuffer + bytesRead);
-}
-
-
-//Finally, if you need to treat your data as a raw-array:
-some_c_function(myData.data(), myData.size());
-//std::vector is guaranteed to be contiguous.
-//
-
-std::vector<char> buffer;
-static const size_t MaxBytesPerRecv = 1024;
-size_t bytesRead;
-do
-{
-    const size_t oldSize = buffer.size();
-
-    buffer.resize(oldSize + MaxBytesPerRecv);
-    bytesRead = receive(&buffer[oldSize], MaxBytesPerRecv); // pseudo, as is the case with winsock recv() functions, they get a buffer and maximum bytes to write to the buffer
-
-    myData.resize(oldSize + bytesRead); // shrink the vector, this is practically no-op - it only modifies the internal size, no data is moved/freed
-} while (bytesRead > 0);
-#endif
 }
