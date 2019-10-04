@@ -30,37 +30,18 @@ OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISE
 OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-#if !defined(__COPI_HPP)
-#define __COPI_HPP
+#if !defined(__HANDLE_HPP)
+#define __HANDLE_HPP
 
+#include "copi.hpp"
 
-#define _WIN32_WINNT    0x601
-//#include <Windows.h>
-#include <WinSock2.h>
-#include <Ws2tcpip.h>
-#include <Mstcpip.h>
+namespace COPI {
 
-#if _MSC_VER > 1500
-    #include <intrin.h>
-    #define ATOMIC_INCR(v)          ::_InterlockedIncrement((v))
-    #define ATOMIC_DECR(v)          ::_InterlockedDecrement((v))
-    #define ATOMIC_CAS(v, a, b)     ::_InterlockedCompareExchange((v), (a), (b))
-#else
-    #define ATOMIC_INCR(v)          ::InterlockedIncrement((v))
-    #define ATOMIC_DECR(v)          ::InterlockedDecrement((v))
-    #define ATOMIC_CAS(v, a, b)     ::InterlockedCompareExchange((v), (a), (b))
-#endif
+struct CHasHandle {
 
-#include "_exceptions.hpp"
-#include "_handle.hpp"
-#include "_iocp.hpp"
-#include "_helper.hpp"
-#include "_locks.hpp"
-#include "_condition_variable.hpp"
-#include "_socket.hpp"
-#include "_queue.hpp"
-#include "_file.hpp"
-#include "_mmap.hpp"
-#include "_wsock.hpp"
+    virtual HANDLE getHandle() const = 0;
+};
 
-#endif // __COPI_HPP
+}
+
+#endif // __HANDLE_CPP
