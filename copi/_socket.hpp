@@ -42,7 +42,7 @@ struct CAddress {
     struct sockaddr address;
 };
 
-class CSocket {
+class CSocket : public CHasHandle {
 public:
     //Socket() {};
     CSocket(IOCP * iocp, int family = PF_INET, int socktype = SOCK_STREAM, int protocol = IPPROTO_TCP, int options = 0);
@@ -56,8 +56,8 @@ public:
     bool bind(CAddress & address);
     bool listen(int backlog = 10);
     bool accept(CAddress & peerAddress);
-    void send(char * buf, unsigned int len);
-    void triggerRecv(unsigned int len);
+    void write(char * buf, unsigned int len);
+    void triggerRead(unsigned int len);
     HANDLE getHandle() const;
     LPFN_CONNECTEX connectEx;
 protected:

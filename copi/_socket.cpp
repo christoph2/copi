@@ -51,7 +51,6 @@ CSocket::CSocket(IOCP * iocp, int family, int socktype, int protocol, int option
 
 CSocket::~CSocket()
 {
-    printf("~CSocket()\n");
     ::closesocket(m_socket);
 }
 
@@ -104,7 +103,7 @@ bool CSocket::connect(CAddress & address)
         Win_ErrorMsg("Socket::connect()", WSAGetLastError());
         return false;
     }
-    PerHandleData handleData(HANDLE_SOCKET, getHandle());
+    CPerHandleData handleData(HANDLE_SOCKET, this);
     m_iocp->registerHandle(&handleData);
     m_connected = true;
     return true;
@@ -167,7 +166,7 @@ bool CSocket::getaddrinfo(int family, int socktype, int protocol, const char * h
     return true;
 }
 
-void CSocket::send(char * buf, unsigned int len)
+void CSocket::write(char * buf, unsigned int len)
 {
     DWORD bytesWritten;
     int addrLen;
@@ -178,7 +177,6 @@ void CSocket::send(char * buf, unsigned int len)
     iod->m_opcode = IO_WRITE;
     iod->m_bytesRemaining = iod->m_bytesToXfer = len;
     iod->resetOverlapped();
-    iod->m_socket = this;
 
     if (m_socktype == SOCK_DGRAM) {
         addrLen = sizeof(SOCKADDR_STORAGE);
@@ -209,7 +207,7 @@ void CSocket::send(char * buf, unsigned int len)
     }
 }
 
-void CSocket::triggerRecv(unsigned int len)
+void CSocket::triggerRead(unsigned int len)
 {
     DWORD numReceived = (DWORD)0;
     DWORD flags = (DWORD)0;
@@ -224,7 +222,6 @@ void CSocket::triggerRecv(unsigned int len)
     iod->m_opcode = IO_READ;
     iod->m_bytesRemaining = iod->m_bytesToXfer = len;
     iod->resetOverlapped();
-    iod->m_socket = this;
 
 
 //    SecureZeroMemory(&recvOlap.overlapped, sizeof(OVERLAPPED));
