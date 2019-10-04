@@ -41,6 +41,11 @@ struct WindowsException : public std::exception {
    const char * what () const throw ();
 };
 
+struct TimeoutException : public std::exception {
+   const char * what () const throw ();
+};
+
+
 
 }
 

@@ -39,4 +39,9 @@ const char * WindowsException::what () const throw ()
     return "Windows Exception";
 }
 
+const char * TimeoutException::what () const throw ()
+{
+    return "Timeout Exception";
+}
+
 }

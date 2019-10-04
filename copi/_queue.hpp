@@ -50,21 +50,22 @@ public:
         m_cv.notify_one();
     }
 
-    bool get(T& data, DWORD millis = INFINITE) {
+    T get(DWORD millis = INFINITE) {
         bool res;
+        T data;
         m_lock.acquire();
 
         while (m_queue.empty()) {
             res = m_cv.wait(m_lock, millis);
             if (!res) {
-                return false;
+                throw TimeoutException();
             }
         }
 
         data = m_queue.front();
         m_queue.pop();
         m_lock.release();
-        return true;
+        return data;
     }
 
     bool empty() {
