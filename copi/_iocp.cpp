@@ -80,35 +80,40 @@ IOCP::~IOCP()
     DWORD remaining = static_cast<DWORD>(divres.rem);
     HANDLE * thrArray = NULL;
     DWORD offset = 0;
+    DWORD idx = 0;
 
     postQuitMessage();
 
+    thrArray = new HANDLE[MAXIMUM_WAIT_OBJECTS];
     for (DWORD r = 0; r < rounds; ++r) {
-        thrArray = new HANDLE[MAXIMUM_WAIT_OBJECTS];
-        for (DWORD idx = 0; idx < MAXIMUM_WAIT_OBJECTS; ++idx) {
+        for (idx = 0; idx < MAXIMUM_WAIT_OBJECTS; ++idx) {
             thrArray[idx] = m_threads.at(idx + offset);
         }
         WaitForMultipleObjects(MAXIMUM_WAIT_OBJECTS, thrArray, TRUE, INFINITE);
-        delete[] thrArray;
+        for (idx = 0; idx < MAXIMUM_WAIT_OBJECTS; ++idx) {
+            CloseHandle(thrArray[idx]);
+        }
         offset += MAXIMUM_WAIT_OBJECTS;
     }
 
     if (remaining > 0) {
-        thrArray = new HANDLE[numThreads];
-        for (DWORD idx = 0; idx < remaining; ++idx) {
+        for (idx = 0; idx < remaining; ++idx) {
             thrArray[idx] = m_threads.at(idx + offset);
         }
         WaitForMultipleObjects(remaining, thrArray, TRUE, INFINITE);
-        delete[] thrArray;
+        for (idx = 0; idx < remaining; ++idx) {
+            CloseHandle(thrArray[idx]);
+        }
     }
+    delete[] thrArray;
     CloseHandle(m_port.handle);
 }
 
-bool IOCP::registerHandle(PerHandleData * object)
+bool IOCP::registerHandle(CPerHandleData * object)
 {
     HANDLE handle;
 
-    handle = ::CreateIoCompletionPort(object->m_handle, m_port.handle, reinterpret_cast<ULONG_PTR>(object), 0);
+    handle = ::CreateIoCompletionPort(object->m_socket->getHandle(), m_port.handle, reinterpret_cast<ULONG_PTR>(object), 0);
     printf("Registered Handle: %p\n", handle);
     if (handle == NULL) {
         throw WindowsException();
@@ -140,6 +145,8 @@ static DWORD WINAPI WorkerThread(LPVOID lpParameter)
     DWORD numBytesRecv = 0;
     ULONG_PTR CompletionKey;
     CPerIOData * iod = NULL;
+    CPerHandleData * phd = NULL;
+    CSocket * sock = NULL;
     OVERLAPPED * olap = NULL;
     bool exitLoop = FALSE;
     static WSABUF wsaBuffer;
@@ -150,18 +157,17 @@ static DWORD WINAPI WorkerThread(LPVOID lpParameter)
     printf("Entering thread with [%p] [%d]...\n", iocp, iocp->getHandle());
     while (!exitLoop) {
         if (::GetQueuedCompletionStatus(iocp->getHandle(), &numBytesRecv, &CompletionKey, (LPOVERLAPPED*)&olap, INFINITE)) {
-            //printf("Got Event: %ld %ld\n", numBytesRecv, CompletionKey);
             if ((numBytesRecv == 0) &&  (CompletionKey == NULL)) {
                 iocp->postQuitMessage();    // "Broadcast"
                 exitLoop = TRUE;
             } else {
-
-                iod = (CPerIOData*)olap;
+                phd = reinterpret_cast<CPerHandleData *>(CompletionKey);
+                iod = reinterpret_cast<CPerIOData* >(olap);
                 printf("\tOPCODE: %d bytes: %d\n", iod->m_opcode, numBytesRecv);
                 switch (iod->m_opcode) {
                     case IO_WRITE:
                         iod->m_bytesRemaining -= numBytesRecv;
-                        iod->m_socket->triggerRecv(1024);
+                        phd->m_socket->triggerRead(1024);
                         if (iod->m_bytesRemaining == 0) {
                             delete iod;
                         } else {

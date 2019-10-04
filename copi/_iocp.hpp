@@ -59,23 +59,28 @@ struct PerPortData {
     HANDLE handle;
 };
 
-struct PerHandleData {
+class CSocket;
+
+struct CPerHandleData {
     HandleType m_handleType;
-    HANDLE m_handle;
+    CSocket * m_socket;
     DWORD m_seqNoSend;
     DWORD m_seqNoRecv;
 
-    PerHandleData(HandleType handleType, HANDLE handle) : m_handleType(handleType),
-        m_handle(handle), m_seqNoSend(0), m_seqNoRecv(0) {}
-};
+    CPerHandleData(HandleType handleType, CSocket * socket) : m_handleType(handleType),
+        m_socket(socket), m_seqNoSend(0), m_seqNoRecv(0) {}
 
-class CSocket;
+#if 0
+    HANDLE getHandle() const {
+        return m_socket->getHandle();
+    }
+#endif // 0
+};
 
 struct CPerIOData {
     OVERLAPPED m_overlapped;
     IOType m_opcode;
     WSABUF m_wsabuf;
-    CSocket * m_socket;
     char * m_xferBuffer;
     size_t m_bytesToXfer;
     size_t m_bytesRemaining;
@@ -85,10 +90,8 @@ struct CPerIOData {
         m_xferBuffer = new char[bufferSize];
         m_wsabuf.buf = m_xferBuffer;
         m_wsabuf.len = bufferSize;
-        m_socket = NULL;
         m_bytesRemaining = 0;
         m_bytesToXfer = 0;
-//        m_socket = NULL;
     }
 
     ~CPerIOData() {
@@ -111,7 +114,7 @@ class IOCP {
 public:
     IOCP(DWORD numProcessors = 0);
     ~IOCP();
-    bool registerHandle(PerHandleData * object);
+    bool registerHandle(CPerHandleData * object);
     void postUserMessage() const;
     void postQuitMessage() const;
     HANDLE getHandle() const;
