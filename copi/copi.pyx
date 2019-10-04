@@ -26,7 +26,7 @@ cdef extern from "copi.hpp" namespace "COPI":
     cdef cppclass CQueue[T]:
         CQueue(DWORD spincount) except +
         void put(T& data)
-        T get(DWORD millis)
+        T get(DWORD millis) except +
         bool empty()
 
 cdef class SystemInformation:
@@ -72,8 +72,6 @@ cdef class Queue:
 
     cpdef types.uint64_t get(self, DWORD millis = INFINITE):
         cdef types.uint64_t data = self._thisptr.get(millis)
-        #if not res:
-        #    raise TimeoutError()
         return data
 
     def empty(self):
