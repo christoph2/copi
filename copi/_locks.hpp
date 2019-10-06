@@ -37,33 +37,69 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 
 namespace COPI {
 
-class Lock {
+/** @brief Interface for locks.
+ *
+ *
+ */
+class ILock {
 public:
-    Lock() {}
-    virtual ~Lock() {}
-    virtual void acquire() {}
-    virtual void release() {}
-    virtual bool try_acquire() { return true; }
+
+    /** @brief Virtual destructor.
+     *
+     */
+    virtual ~ILock() {}
+
+    /** @brief Acquire lock.
+     *
+     */
+    virtual void acquire()= 0;
+
+    /** @brief Release lock.
+     *
+     */
+    virtual void release()= 0;
+
+    /** @brief Try to acquire lock.
+     *
+     * @return bool
+     *      @li true - succeeded
+            @li false - failed
+     */
+    virtual bool try_acquire()= 0;
 };
 
-
+/** @brief Very simplistic scoped lock.
+ *
+ *  Lock gets acquired in ctor and released in dtor, i.e. when ScopedLock goes out of scope.
+ *
+ */
 class ScopedLock {
 public:
-    ScopedLock(Lock const &lock) {
+
+    /** @brief Construct ScopedLock.
+     *
+     * @param lock Points to an instance implementing ILock interface.
+     *
+     */
+    ScopedLock(ILock * lock) {
         m_lock = lock;
-        m_lock.acquire();
+        m_lock->acquire();
     }
 
     ~ScopedLock() {
-        m_lock.release();
+        m_lock->release();
     }
 private:
-    Lock m_lock;
+    ILock * m_lock;
 };
 
 namespace win {
 
-class CriticalSection : public Lock {
+/** @brief A mutex based on Windows critical sections.
+ *
+ *  Implements ILock.
+ */
+class CriticalSection : public ILock {
 public:
     CriticalSection(DWORD spincount = 0) {
         ::InitializeCriticalSectionAndSpinCount(&m_crit_section, spincount);
@@ -101,12 +137,12 @@ private:
 };
 
 #if 0
-class Mutex : public Lock {
+class Mutex : public ILock {
     Mutex();
     ~Mutex();
 };
 
-class Spinlock : public Lock {
+class Spinlock : public ILock {
     Spinlock();
     ~Spinlock();
 };

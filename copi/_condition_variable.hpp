@@ -73,7 +73,7 @@ public:
         notify_(detail::CV_BROADCAST);
     }
 
-    bool wait(Lock & externalLock, DWORD millis = INFINITE) {
+    bool wait(ILock & externalLock, DWORD millis = INFINITE) {
         DWORD res;
         bool last_waiter;
 
