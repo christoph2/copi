@@ -60,6 +60,6 @@ setup(
     tests_require=test_requirements,
     ext_modules = ext_modules,
     url='https://github.com/christoph2/copi',
-    version='0.1.25',
+    version='0.1.26',
     zip_safe=False,
 )
