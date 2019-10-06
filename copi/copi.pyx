@@ -3,7 +3,7 @@
 
 from cpython.bool cimport bool
 cimport libc.stdint as types
-
+from cython.operator cimport dereference as deref
 
 DEF INFINITE = 0xFFFFFFFF  # Infinite timeout
 
@@ -26,7 +26,7 @@ cdef extern from "copi.hpp" namespace "COPI":
     cdef cppclass CQueue[T]:
         CQueue(DWORD spincount) except +
         void put(T& data)
-        T get(DWORD millis) except +
+        bool get(T * data, DWORD millis) except +
         bool empty()
 
 cdef class SystemInformation:
@@ -71,8 +71,11 @@ cdef class Queue:
         self._thisptr.put(data)
 
     cpdef types.uint64_t get(self, DWORD millis = INFINITE):
-        cdef types.uint64_t data = self._thisptr.get(millis)
-        return data
+        cdef types.uint64_t * data
+        if self._thisptr.get(data, millis):
+            return deref(data)
+        else:
+            raise TimeoutError("Queue::get() timed out")
 
     cpdef bool empty(self):
         return self._thisptr.empty()

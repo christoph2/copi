@@ -37,12 +37,32 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 
 namespace COPI {
 
+/** @brief Generic queue (FIFO) type.
+ *
+ * @tparam T Any C++ type.
+ * @note `CQueue` is multi-producer, multi-consumer, and thread-safe.
+ *
+ */
+
 template <typename T> class CQueue {
 public:
+
+    /** @brief `CQueue` constructor.
+     *
+     * @param spincount
+     *      @li If == 0 don't spin.
+     @      @li If > 0 Try busy-waiting before acquire lock.
+     *
+     */
     CQueue(DWORD spincount = 0) : m_lock(spincount), m_cv(spincount) {}
 
-    ~CQueue() {}
+    //~CQueue() {}
 
+    /** @brief Add item to queue.
+     *
+     * @param data
+     *
+     */
     void put(const T& data) {
         m_lock.acquire();
         m_queue.push(data);
@@ -50,24 +70,40 @@ public:
         m_cv.notify_one();
     }
 
-    T get(DWORD millis = INFINITE) {
+    /** @brief Get (remove) item from queue, considering a timeout value.
+     *
+     * @param[out] data Pointer to removed item.
+     * @param millis timeout in milliseconds.
+     *      @li == 0 Try to get an item (immediately return).
+     *      @li == INFINITE wait forever for availability.
+     *      @li else Wait at most `millis` milliseconds.
+     * @return bool
+     *      @li true - success
+     *      @li false - timeout.
+     *
+     */
+    bool get(T * data, DWORD millis = INFINITE) {
         bool res;
-        T data;
         m_lock.acquire();
 
         while (m_queue.empty()) {
             res = m_cv.wait(m_lock, millis);
             if (!res) {
-                throw TimeoutException();
+                return false;
             }
         }
 
-        data = m_queue.front();
+        *data = m_queue.front();
         m_queue.pop();
         m_lock.release();
-        return data;
+        return true;
     }
 
+    /** @brief Test queue for emptyness.
+     *
+     * @return bool
+     *
+     */
     bool empty() {
         bool result;
 
