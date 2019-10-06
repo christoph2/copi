@@ -53,6 +53,8 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "_exceptions.hpp"
 #include "_handle.hpp"
+#include "_shared_ptr.hpp"
+#include "_pool.hpp"
 #include "_iocp.hpp"
 #include "_helper.hpp"
 #include "_locks.hpp"
