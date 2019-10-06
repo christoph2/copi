@@ -6,11 +6,11 @@
 from setuptools import setup, find_packages, Extension
 from Cython.Build import cythonize
 
-options = ["/Ox /EHsc"] # ["/Ox", "/GS-", "/EHsc"]
+options =  [] # ["/Ox /EHsc"] # ["/Ox", "/GS-", "/EHsc"]
 
 extensions = [
     Extension(name = "copi.copi", sources = ["copi/copi.pyx", "copi/_iocp.cpp",
-            "copi/_socket.cpp", "copi/_exceptions.cpp", "copi/_locks.cpp", "copi/_wsock.cpp",
+            "copi/_socket.cpp", "copi/_exceptions.cpp", "copi/_wsock.cpp",
             "copi/_file.cpp", "copi/_mmap.cpp", "copi/_helper.cpp"
         ],
         libraries = ["ws2_32", "kernel32"], extra_compile_args = options),

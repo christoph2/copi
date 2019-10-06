@@ -49,8 +49,14 @@ public:
 
 class ScopedLock {
 public:
-    ScopedLock(Lock const &lock);
-    ~ScopedLock();
+    ScopedLock(Lock const &lock) {
+        m_lock = lock;
+        m_lock.acquire();
+    }
+
+    ~ScopedLock() {
+        m_lock.release();
+    }
 private:
     Lock m_lock;
 };
@@ -59,11 +65,36 @@ namespace win {
 
 class CriticalSection : public Lock {
 public:
-    CriticalSection(DWORD spincount = 0);
-    ~CriticalSection();
-    void acquire();
-    void release();
-    bool try_acquire();
+    CriticalSection(DWORD spincount = 0) {
+        ::InitializeCriticalSectionAndSpinCount(&m_crit_section, spincount);
+        m_is_locked = false;
+    }
+
+    ~CriticalSection() {
+        if (m_is_locked) {
+            release();
+        }
+        ::DeleteCriticalSection(&m_crit_section);
+    }
+
+    void acquire() {
+        ::EnterCriticalSection(&m_crit_section);
+        m_is_locked = true;
+    }
+
+    void release() {
+        if (!m_is_locked) {
+            return;
+        }
+        ::LeaveCriticalSection(&m_crit_section);
+        m_is_locked = false;
+    }
+
+    bool try_acquire() {
+        m_is_locked = ::TryEnterCriticalSection(&m_crit_section) == TRUE;
+        return m_is_locked;
+    }
+
 private:
     CRITICAL_SECTION m_crit_section;
     bool m_is_locked;
