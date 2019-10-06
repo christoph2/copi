@@ -74,5 +74,5 @@ cdef class Queue:
         cdef types.uint64_t data = self._thisptr.get(millis)
         return data
 
-    def empty(self):
+    cpdef bool empty(self):
         return self._thisptr.empty()
