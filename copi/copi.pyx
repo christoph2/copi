@@ -4,6 +4,7 @@
 from cpython.bool cimport bool
 cimport libc.stdint as types
 from cython.operator cimport dereference as deref
+from libc.stdlib cimport malloc, free
 
 DEF INFINITE = 0xFFFFFFFF  # Infinite timeout
 
@@ -26,7 +27,7 @@ cdef extern from "copi.hpp" namespace "COPI":
     cdef cppclass CQueue[T]:
         CQueue(DWORD spincount) except +
         void put(T& data)
-        bool get(T * data, DWORD millis) except +
+        bool get(T * data, DWORD millis)
         bool empty()
 
 cdef class SystemInformation:
@@ -71,9 +72,12 @@ cdef class Queue:
         self._thisptr.put(data)
 
     cpdef types.uint64_t get(self, DWORD millis = INFINITE):
-        cdef types.uint64_t * data
+        cdef types.uint64_t * data = <types.uint64_t *>malloc(sizeof(types.uint64_t))
+        cdef types.uint64_t result
         if self._thisptr.get(data, millis):
-            return deref(data)
+            result = deref(data)
+            free(<void *>data)
+            return result
         else:
             raise TimeoutError("Queue::get() timed out")
 

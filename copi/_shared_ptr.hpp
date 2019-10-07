@@ -86,6 +86,7 @@ public:
     {
         cout << "\tassignment" << endl;
         m_counter = other.getCounter();
+        return *this;
     }
 
     /** @brief Increment counter by one.
