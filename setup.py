@@ -11,8 +11,7 @@ options =  [] # ["/Ox /EHsc"] # ["/Ox", "/GS-", "/EHsc"]
 extensions = [
     Extension(name = "copi._copi",
     sources = [
-        #"copi/copi.pyx",
-        "copi.i",
+        "copi/copi.i",
         "copi/_iocp.cpp",
         "copi/_socket.cpp", "copi/_exceptions.cpp", "copi/_wsock.cpp",
         "copi/_file.cpp", "copi/_mmap.cpp", "copi/_helper.cpp"
@@ -22,7 +21,7 @@ extensions = [
     ],
     libraries = ["ws2_32", "kernel32"],
     extra_compile_args = options,
-    swig_opts = ["-c++", "-modern", "-Icopi"]
+    swig_opts = ["-c++", "-modern", "-py3", "-Icopi"]
     )
 ]
 
@@ -71,8 +70,10 @@ setup(
     keywords=['iocp ', 'Windows'],
     platforms=['Windows'],
     name='copi',
-    py_modules = ['copi'],
-    packages=find_packages(include=['copi']),
+    #py_modules = ['copi'],
+    #packages=find_packages(include=['copi']),
+    packages = ["copi"],
+    package_dir = {"copi": "copi"},
     setup_requires=setup_requirements,
     test_suite='tests',
     tests_require=test_requirements,
