@@ -21,6 +21,7 @@ install:
   - cmd: env
   - cmd: set APPVEYOR_REPO_TAG = true
   - cmd: set PATH=%PATH%;%PYTHON%\Scripts
+  - ps: cinst -y swig
   - "%PYTHON%\\python.exe -m pip install --upgrade pip"
   - "%PYTHON%\\python.exe -m pip install --upgrade setuptools"
   - "%PYTHON%\\python.exe -m pip install wheel"
