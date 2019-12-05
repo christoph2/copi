@@ -4,13 +4,14 @@ include HISTORY.rst
 include LICENSE
 include README.rst
 
+include copi.py
+
 include *.rst
 include *.md
 include *.txt
 include *.yml
 recursive-include copi *.cpp
 recursive-include copi *.hpp
-recursive-include copi *.pyx
 recursive-include docs *.txt
 
 recursive-include tests *

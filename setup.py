@@ -6,7 +6,7 @@
 from setuptools import setup, find_packages, Extension
 from setuptools.command.build_py import build_py as _build_py
 
-options =  ["-std=c++11"] # ["/Ox /EHsc"] # ["/Ox", "/GS-", "/EHsc"]
+options =  [] # ["/Ox /EHsc"] # ["/Ox", "/GS-", "/EHsc"]
 
 extensions = [
     Extension(name = "copi._copi",
@@ -33,9 +33,9 @@ with open('README.rst') as readme_file:
 with open('HISTORY.rst') as history_file:
     history = history_file.read()
 
-requirements = ["typing"]
+requirements = []
 
-setup_requirements = ['cython', 'pytest-runner']
+setup_requirements = ['pytest-runner']
 
 test_requirements =  ['pytest < 5.0', ]
 
@@ -71,6 +71,7 @@ setup(
     keywords=['iocp ', 'Windows'],
     platforms=['Windows'],
     name='copi',
+    py_modules = ['copi'],
     packages=find_packages(include=['copi']),
     setup_requires=setup_requirements,
     test_suite='tests',
