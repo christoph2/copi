@@ -4,19 +4,28 @@
 """The setup script."""
 
 from setuptools import setup, find_packages, Extension
-from Cython.Build import cythonize
+from setuptools.command.build_py import build_py as _build_py
 
-options =  [] # ["/Ox /EHsc"] # ["/Ox", "/GS-", "/EHsc"]
+options =  ["-std=c++11"] # ["/Ox /EHsc"] # ["/Ox", "/GS-", "/EHsc"]
 
 extensions = [
-    Extension(name = "copi.copi", sources = ["copi/copi.pyx", "copi/_iocp.cpp",
-            "copi/_socket.cpp", "copi/_exceptions.cpp", "copi/_wsock.cpp",
-            "copi/_file.cpp", "copi/_mmap.cpp", "copi/_helper.cpp"
-        ],
-        libraries = ["ws2_32", "kernel32"], extra_compile_args = options),
+    Extension(name = "copi._copi",
+    sources = [
+        #"copi/copi.pyx",
+        "copi.i",
+        "copi/_iocp.cpp",
+        "copi/_socket.cpp", "copi/_exceptions.cpp", "copi/_wsock.cpp",
+        "copi/_file.cpp", "copi/_mmap.cpp", "copi/_helper.cpp"
+    ],
+    include_dirs = [
+        "copi/",
+    ],
+    libraries = ["ws2_32", "kernel32"],
+    extra_compile_args = options,
+    swig_opts = ["-c++", "-modern", "-Icopi"]
+    )
 ]
 
-ext_modules=cythonize(extensions, language_level = 3, annotate = True)
 
 with open('README.rst') as readme_file:
     readme = readme_file.read()
@@ -29,6 +38,11 @@ requirements = ["typing"]
 setup_requirements = ['cython', 'pytest-runner']
 
 test_requirements =  ['pytest < 5.0', ]
+
+class BuildPy(_build_py):
+    def run(self):
+        self.run_command("build_ext")
+        return super().run()
 
 setup(
     author="Christoph Schueler",
@@ -46,6 +60,9 @@ setup(
         'Programming Language :: Python :: 3.7',
         'Topic :: Software Development'
     ],
+
+    #cmdclass = {"build_py": BuildPy},
+
     description="copi is your friendly IOCP (I/O completion ports) micro framework, exclusively for Windows.",
     install_requires=requirements,
     license="BSD license",
@@ -58,7 +75,7 @@ setup(
     setup_requires=setup_requirements,
     test_suite='tests',
     tests_require=test_requirements,
-    ext_modules = ext_modules,
+    ext_modules = extensions,
     url='https://github.com/christoph2/copi',
     version='0.1.27',
     zip_safe=False,
