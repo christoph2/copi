@@ -21,7 +21,7 @@ extensions = [
     ],
     libraries = ["ws2_32", "kernel32"],
     extra_compile_args = options,
-    swig_opts = ["-c++", "-modern", "-py3", "-Icopi"]
+    swig_opts = ["-c++", "-py3", "-Icopi"]
     )
 ]
 
@@ -60,7 +60,7 @@ setup(
         'Topic :: Software Development'
     ],
 
-    #cmdclass = {"build_py": BuildPy},
+    cmdclass = {"build_py": BuildPy},
 
     description="copi is your friendly IOCP (I/O completion ports) micro framework, exclusively for Windows.",
     install_requires=requirements,
