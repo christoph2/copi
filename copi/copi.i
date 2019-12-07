@@ -7,6 +7,7 @@
 using namespace COPI;
 %}
 
+%include <windows.i>
 %include "copi.hpp"
 
 
