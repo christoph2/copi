@@ -21,7 +21,7 @@ extensions = [
     ],
     libraries = ["ws2_32", "kernel32"],
     extra_compile_args = options,
-    swig_opts = ["-c++", "-py3", "-Icopi"]
+    swig_opts = ["-c++", "-py3", "-Icopi", "-Wall"]
     )
 ]
 
@@ -70,7 +70,6 @@ setup(
     keywords=['iocp ', 'Windows'],
     platforms=['Windows'],
     name='copi',
-    #py_modules = ['copi'],
     #packages=find_packages(include=['copi']),
     packages = ["copi"],
     package_dir = {"copi": "copi"},
